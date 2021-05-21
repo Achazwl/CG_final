@@ -1,5 +1,5 @@
-#ifndef VECS_VEC
-#define VECS_VEC
+#ifndef VECS_VECTOR3F
+#define VECS_VECTOR3F
 
 #include <cmath>
 #include <cstdlib>
@@ -31,4 +31,4 @@ struct Vec {
 
 using RGB = Vec;
 
-#endif // VECS_VEC
+#endif // VECS_VECTOR3F

@@ -1,17 +1,22 @@
 #ifndef OBJ_BASE
 #define OBJ_BASE
 
+#include <memory>
+
 #include "../pt/ray.h"
-#include "refl.h"
+#include "../pt/hit.h"
+#include "material.h"
 
 // Base class for all 3d entities.
 class Object3D {
 public:
-    Object3D(Vec e, Vec col, Refl refl): e(e), col(col), refl(refl) {}
-    virtual bool intersect(const Ray &ray, double &t) const = 0;
+    Object3D(Material *material) : material(material) {}
+    virtual ~Object3D() = default;
+
+    virtual bool intersect(const Ray &ray, Hit &hit) const = 0;
+
 public: // TODO protected
-	Vec e, col;
-	Refl refl;
+    Material *material;
 };
 
 #endif // OBJ_BASE
