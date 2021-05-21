@@ -4,6 +4,8 @@
 #include "../vecs/vector3f.h"
 #include "../object/material.h"
 
+constexpr double hiteps = 1e-3;
+
 struct Hit {
     float t;
     Material *m;
