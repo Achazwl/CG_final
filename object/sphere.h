@@ -6,7 +6,8 @@
 
 struct Sphere : Object3D { 
 	static constexpr double eps = 1e-4;
-	Sphere(double r, Vec c, Material *material): Object3D(material), r(r), c(c) {} 
+	Sphere(double r, Vec c, Material *material): Object3D(material), r(r), c(c) {
+	} 
 
 	bool intersect(const Ray &ray, Hit &hit) const override { // returns distance, 0 if nohit 
 		static double tim; // temparary usage
@@ -18,12 +19,10 @@ struct Sphere : Object3D {
 		if ((tim = b - delta) > eps) {
 		} else if ((tim = b + delta) > eps) {
 		} else return false;
-		if (tim < hit.t) {
+		if (0 < tim && tim < hit.t) {
 			hit.set(tim, this->material, (ray.At(tim) - c).normal());
 			return true;
-		} else {
-			return false;
-		}
+		} else return false;
 	} 
 
 protected:

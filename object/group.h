@@ -3,9 +3,9 @@
 
 #include <iostream>
 #include <vector>
-#include "base.h"
+#include "plane.h"
 #include "sphere.h"
-#include "../pt/ray.h"
+#include "triangle.h"
 
 class Group {
 public:

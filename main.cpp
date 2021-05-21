@@ -7,15 +7,36 @@
 #include "object/group.h"
 #include "pt/tracing.h"
 
-Group group(std::vector<Object3D*>{
+Group group(std::vector<Object3D*>{ // x, y, -z
 	new Sphere(1e5, Vec( 1e5+1,40.8,81.6),  new Material{Vec(),Vec(.75,.25,.25), Refl::DIFFUSE}), //Left 
+	// new Triangle(Vec(1, 0, 170), Vec(1, 0, 0), Vec(1, 81.6, 0), new Material(Vec(), Vec(.75, .25, .25), Refl::DIFFUSE)), // Left
+	// new Triangle(Vec(1, 0, 170), Vec(1, 81.6, 0), Vec(1, 81.6, 170), new Material(Vec(), Vec(.75, .25, .25), Refl::DIFFUSE)), // Left
+
 	new Sphere(1e5, Vec(-1e5+99,40.8,81.6), new Material{Vec(),Vec(.25,.25,.75), Refl::DIFFUSE}), //Rght 
+	// new Triangle(Vec(99, 0, 170), Vec(99, 81.6, 170), Vec(99, 81.6, 0), new Material{Vec(),Vec(.25,.25,.75), Refl::DIFFUSE}),
+	// new Triangle(Vec(99, 0, 170), Vec(99, 81.6, 0), Vec(99, 0, 0), new Material{Vec(),Vec(.25,.25,.75), Refl::DIFFUSE}),
+
 	new Sphere(1e5, Vec(50,40.8, 1e5),      new Material{Vec(),Vec(.75,.75,.75), Refl::DIFFUSE}), //Back 
-	new Sphere(1e5, Vec(50,40.8,-1e5+170),  new Material{Vec(),Vec(),            Refl::DIFFUSE}), //Frnt 
+	// new Triangle(Vec(1, 0, 2), Vec(99, 0, 2), Vec(99, 81.6, 2),  new Material{Vec(),Vec(.75,.75,.75), Refl::DIFFUSE}),
+	// new Triangle(Vec(1, 0, 2), Vec(99, 81.86, 2), Vec(0, 81.6, 2),  new Material{Vec(),Vec(.75,.75,.75), Refl::DIFFUSE}),
+
+	new Sphere(1e5, Vec(50,40.8,-1e5+170),  new Material{Vec(),Vec(), Refl::DIFFUSE}), //Frnt 
+	// new Triangle(Vec(1, 0, 170), Vec(1, 81.6, 170), Vec(99, 81.6, 170), new Material{Vec(),Vec(), Refl::DIFFUSE}),
+	// new Triangle(Vec(1, 0, 170), Vec(99, 81.6, 170), Vec(99, 0, 170), new Material{Vec(),Vec(), Refl::DIFFUSE}),
+
 	new Sphere(1e5, Vec(50, 1e5, 81.6),     new Material{Vec(),Vec(.75,.75,.75), Refl::DIFFUSE}), //Botm 
-	new Sphere(1e5, Vec(50,-1e5+81.6,81.6), new Material{Vec(),Vec(.75,.75,.75), Refl::DIFFUSE}), //Top 
+	// new Triangle(Vec(1, 0, 170), Vec(99, 0, 170), Vec(99, 0, 0), new Material{Vec(),Vec(.75,.75,.75), Refl::DIFFUSE}), //Botm 
+	// new Triangle(Vec(1, 0, 170), Vec(99, 0, 0), Vec(1, 0, 0), new Material{Vec(),Vec(.75,.75,.75), Refl::DIFFUSE}), //Botm 
+
+	new Sphere(1e10, Vec(50,1e10+81.6,81.6), new Material{Vec(),Vec(.25,.90,.25), Refl::DIFFUSE}), //Top 
+	// new Triangle(Vec(1, 81.6, 170), Vec(1, 81.6, 0), Vec(99, 81.6, 0), new Material{Vec(), Vec(0, 0.9, 0), Refl::DIFFUSE}),
+	// new Triangle(Vec(1, 81.6, 170), Vec(99, 81.6, 0), Vec(99, 81.6, 170), new Material{Vec(), Vec(0, 0.9, 0), Refl::DIFFUSE}),
+
 	new Sphere(16.5,Vec(27,16.5,47),        new Material{Vec(),Vec(1,1,1)*.999,  Refl::MIRROR }), //ball 1
 	new Sphere(16.5,Vec(73,16.5,78),        new Material{Vec(),Vec(1,1,1)*.999,  Refl::GLASS  }), //ball 2
+	// new Triangle(Vec(21, 0, 60), Vec(41, 0, 20), Vec(41, 63, 20), new Material(Vec(), Vec(1, 1, 1)*0.99, Refl::GLASS)), // ?
+	// new Triangle(Vec(61, 0, 60), Vec(41, 0, 20), Vec(41, 63, 20), new Material(Vec(), Vec(1, 1, 1)*0.99, Refl::GLASS)), // ?
+
 	new Sphere(600, Vec(50,681.6-.27,81.6), new Material{Vec(12,12,12),  Vec(),  Refl::DIFFUSE}), //Light
 });
 
@@ -27,7 +48,7 @@ inline int toInt(double  x) {
 } 
 
 int main(int argc, char *argv[]) { 
-	static constexpr int w=512, h=384; // TODO bigger, better
+	static constexpr int w=1024, h=768; // TODO bigger, better
 	static constexpr int subpixel = 2, subpixel2 = subpixel*subpixel; // TODO bigger, better ?
 	int samps = atoi(argv[1]) / subpixel2; // TODO bigger, better
 	static constexpr double CAMERA_LEN_DISTANCE = 140;

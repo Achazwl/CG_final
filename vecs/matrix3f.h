@@ -9,7 +9,7 @@ struct Matrix {
             a.x, a.y, a.z,
             b.x, b.y, b.z,
             c.x, c.y, c.z
-        )
+        );
     } 
 
     static double det(  float m00, float m01, float m02,

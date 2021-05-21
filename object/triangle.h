@@ -17,14 +17,14 @@ struct Triangle : Object3D {
 	    auto div = Matrix::det(ray.d, E1, E2);
 	    if (fabs(div) < 1e-7) return false;
 	    auto t = Matrix::det(S, E1, E2) / div;
-	    if (t > hit.t) return false;
+	    if (t < 0 || t > hit.t) return false;
         auto a = Matrix::det(ray.d, S, E2) / div;
         if (a < 0 || a > 1) return false;
         auto b = Matrix::det(ray.d, E1, S) / div;
         if (b < 0 || b > 1) return false;
         if (a + b > 1) return false;
 
-        hit.set(t, material, n);
+        hit.set(t, material, div < 0 ? n : -n);
         return true;
 	}
 
@@ -34,4 +34,4 @@ protected:
     Vec E1, E2;
 }; 
 
-#endif // OBJ_Triangle
+#endif // OBJ_TRIANGLE

@@ -30,7 +30,15 @@ inline Vec tracing(const Group &group, const Ray &ray, int depth, int E = 1) {
 		Vec w = nl, u = w.ortho(), v = Vec::cross(w, u); 
 		Vec d = (u*cos(r1)*r2s + v*sin(r1)*r2s + w*sqrt(1-r2)).normal(); 
 
-		return hit.m->e + Vec::mult(f, tracing(group, Ray(x, d), depth, 1)); // E置0，下一层如果随机恰能反射到光源，那就不重复计算了
+		if (f.y == 0.9) {
+			// printf("%lf %lf %lf\n", f.x, f.y, f.z);
+			// if (w.y > 0) {
+			// 	printf("%lf %lf %lf\n", w.x, w.y, w.z);
+			// 	printf("%lf\n", hit.t);
+			// }
+		}
+
+		return hit.m->e + Vec::mult(f, tracing(group, Ray(x, d), depth, 1));
 	}
 	else {
 		Ray reflRay(x, ray.d - 2 * Vec::dot(ray.d, nl) * nl);   
