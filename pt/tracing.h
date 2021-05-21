@@ -29,15 +29,6 @@ inline Vec tracing(const Group &group, const Ray &ray, int depth, int E = 1) {
 		double r1=rnd(2*M_PI), r2=rnd(), r2s=sqrt(r2); 
 		Vec w = nl, u = w.ortho(), v = Vec::cross(w, u); 
 		Vec d = (u*cos(r1)*r2s + v*sin(r1)*r2s + w*sqrt(1-r2)).normal(); 
-
-		if (f.y == 0.9) {
-			// printf("%lf %lf %lf\n", f.x, f.y, f.z);
-			// if (w.y > 0) {
-			// 	printf("%lf %lf %lf\n", w.x, w.y, w.z);
-			// 	printf("%lf\n", hit.t);
-			// }
-		}
-
 		return hit.m->e + Vec::mult(f, tracing(group, Ray(x, d), depth, 1));
 	}
 	else {
@@ -76,6 +67,7 @@ inline Vec tracing(const Group &group, const Ray &ray, int depth, int E = 1) {
 			}
 		}
 	}
+	return {};
 } 
 
 #endif // PT_TRACING

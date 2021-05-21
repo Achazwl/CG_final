@@ -1,4 +1,3 @@
 g++ -O3 -fopenmp main.cpp -o main
-#g++ main.cpp -o main
-time ./main 50
+time ./main 10000
 display image.ppm
