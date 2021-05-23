@@ -6,6 +6,7 @@
 #include "plane.h"
 #include "sphere.h"
 #include "triangle.h"
+#include "mesh.h"
 
 class Group {
 public:
