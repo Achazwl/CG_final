@@ -10,7 +10,7 @@ $$
 [\|d\|^2] t^2 + [2 d \cdot (o-c)] t + [\|o-c\|^2-r^2] &= 0\\
 t^2 + 2 b t + c &= 0\\
 \end{aligned}
-$$	
+$$
 
 于是
 
@@ -19,7 +19,37 @@ $$
 t &= {2b \pm \sqrt{(2b)^2 - 4 * 1 * c}\over 2*1} \\
 &= b \pm \sqrt {b^2-c}
 \end{aligned}
-$$	
+$$
+
+## Acceleration
+
+### Space partition (KD-tree)
+
+常规KD-tree，叶子节点暴力逐个求交
+
+利用空间关系和光线方向，如果要递归两边则先递归靠近光源的一侧，这要一交到就不用另一侧递归了直接回溯了
+
+### Object partition (BVH)
+
+bounding volume hierarchy
+
+父包围盒子完全包含子包围盒， 但子包围盒可以相交
+
+每个obj属于且仅属于一个叶子节点
+
+永远选长轴切半，尽量对半分
+
+box里物体很少时，不再递归，暴力
+
+![image-20210524112707707](/home/acha/snap/typora/37/.config/Typora/typora-user-images/image-20210524112707707.png)
+
+### compare
+
+> ​	First, it is important to observe that there are basically two different "classes" of methods for building accelerations structures for ray tracing: 1) space subdivision methods (e.g. BSP, kD-Tree, Octree, etc.); and 2) object subdivision methods (e.g. BVH). While space subdivison methods work by recursively subdividing the space with planes, without sticking to the geometry embedded into that space, object subdivison methods work by subdividing the geometry recursively into smaller and smaller parts, wrapping each part with a, usually tight, volume. More on the basics of space and object subdivision that can be found in the PBRT v3 online book.
+​	Each method (space or object sudivision) has its own pros and cons. In the case of space subdivision methods, since the subspaces do not overlap, we can usually traverse the structure in front-to-back, or back-to-front, order more easily. When a ray is traversing such structure, as soon as it hits a surface, we can stop the traversal. This usually leads to faster traversal schemes. Several software renderers take advantage of the traversal efficiency given by the space subdivision schemes. On the other hand, space subdivision schemes may be more intricate to implement (usually you have to tweak some epsilons) and may lead to deeper trees. Also, they do not like very much dynamic geometry. If the geometry encoded into a space subdivision acceleration structure changes, we usually have to rebuild the acceleration structure from scratch.
+​	Object subdivision methods have quite different characteristics. Since the object is subdivided with volumes, and these volumes may overlap, the traversal is traditionally slower. We cannot, for instance, stop traversing a BVH as soon as a ray finds an intersection with a surface. Since the volumes overlap, we may need to check for potential intersections with nearby primitives before quitting the traversal. On the other hand, it may be easier to implement a BVH because we do not have to split the object parts with planes. Also, BVHs usually generate shallower structures (which may eventually compensate the slower traversal). However, one of the most interesting aspects of the BVHs is that they are dynamic geometry-friendly. If geometry changes (but not much, actually), we can simply locally adjust the size and position of the corresponding bounding volume (i.e. refitting). These adjustments may cause the need to adjust the parent volumes, a procedure that may culminate in a chain reaction that may reach the root node of the BVH. All in all, assuming that we have a reasonably balanced BVH, these operations will be ~O(log n), which is really fast and cool.
+
+## Octree
 
 # Ray
 
