@@ -29,13 +29,13 @@ inline Vec tracing(const Group &group, const Ray &ray, int depth, int E = 1) {
 		double r1=rnd(2*M_PI), r2=rnd(), r2s=sqrt(r2); 
 		Vec w = nl, u = w.ortho(), v = Vec::cross(w, u); 
 		Vec d = (u*cos(r1)*r2s + v*sin(r1)*r2s + w*sqrt(1-r2)).normal(); 
-		return hit.m->e + Vec::mult(f, tracing(group, Ray(x, d), depth, 1));
+		return hit.m->e + f * tracing(group, Ray(x, d), depth, 1);
 	}
 	else {
 		Ray reflRay(x, ray.d - 2 * Vec::dot(ray.d, nl) * nl);   
 		if (hit.m->refl == Refl::MIRROR)
 		{           
-			return hit.m->e + Vec::mult(f, tracing(group, reflRay, depth)); 
+			return hit.m->e + f * tracing(group, reflRay, depth); 
 		}
 		else if (hit.m->refl == Refl::GLASS)
 		{
@@ -44,7 +44,7 @@ inline Vec tracing(const Group &group, const Ray &ray, int depth, int E = 1) {
 			double nn = na / nb;
 			double sinr2 = sqr(nn) * (1 - sqr(cosi)); // sin(r)^2 = 1 - (na/nb sin(i))^2
 			if (sinr2 > 1) { // 超过临界角，全反射, 按照MIRROR的方式算
-				return hit.m->e + Vec::mult(f, tracing(group, reflRay, depth)); 
+				return hit.m->e + f * tracing(group, reflRay, depth); 
 			}
 			double cosr = sqrt(1-sinr2);
 			Vec rd = nn*(ray.d + nl * cosi) + (-nl) * cosr;
@@ -54,14 +54,12 @@ inline Vec tracing(const Group &group, const Ray &ray, int depth, int E = 1) {
 
 			if (depth > 2) { // Russian roulette 避免递归分支过多
 				double P = .25 + 0.5 * Re; // 直接按Re做P会出现极端情况，缩放一下，保证有上下界[0.25,0.75]
-				return hit.m->e + Vec::mult(
-					f,
+				return hit.m->e + f * (
 					rnd()<P ? tracing(group, reflRay,depth) * Re/P : tracing(group, Ray(x, rd), depth) * Tr/(1-P)
 				);
 			}
 			else {
-				return hit.m->e + Vec::mult(
-					f,
+				return hit.m->e + f * (
 					tracing(group, reflRay,depth) * Re + tracing(group, Ray(x, rd), depth) * Tr
 				);
 			}

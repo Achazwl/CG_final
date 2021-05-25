@@ -2,7 +2,6 @@
 #define OBJ_TRIANGLE
 
 #include "base.h"
-#include "../vecs/vector3f.h"
 #include "../vecs/matrix3f.h"
 
 struct Triangle : Object3D { 
@@ -10,6 +9,7 @@ struct Triangle : Object3D {
         this->E1 = v[0] - v[1];
         this->E2 = v[0] - v[2];
         this->n = Vec::cross(E1, E2).normal(); // 0, 1, 2 counter clockwise is front face
+        bound = Bound(v[0]) + Bound(v[1]) + Bound(v[2]);
     }
 
 	bool intersect(const Ray& ray, Hit& hit) const override {
