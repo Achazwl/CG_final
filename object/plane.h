@@ -2,7 +2,6 @@
 #define OBJ_PLANE
 
 #include "base.h"
-#include "../vecs/vector3f.h"
 
 class Plane : public Object3D { // TODO what the fuck
 public:

@@ -41,7 +41,13 @@ bounding volume hierarchy
 
 box里物体很少时，不再递归，暴力
 
-![image-20210524112707707](/home/acha/snap/typora/37/.config/Typora/typora-user-images/image-20210524112707707.png)
+![image-20210525102053196](/home/acha/cv_big/README.assets/image-20210525102053196.png)
+
+#### SAH
+
+基于表面积的启发式评估划分方法（Surface Area Heuristic，SAH）
+
+​	
 
 ### compare
 

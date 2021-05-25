@@ -2,11 +2,15 @@
 #define OBJ_SPHERE
 
 #include "base.h"
-#include "../vecs/vector3f.h"
 
 struct Sphere : Object3D { 
 	static constexpr double eps = 1e-4;
-	Sphere(double r, Vec c, Material *material): Object3D(material), r(r), c(c) { } 
+	Sphere(double r, Vec c, Material *material): Object3D(material), r(r), c(c) {
+		bound = Bound(
+			c - Vec(r, r, r),
+			c + Vec(r, r, r)
+		);
+	} 
 
 	bool intersect(const Ray &ray, Hit &hit) const override { // returns distance, 0 if nohit 
 		static double tim; // temparary usage

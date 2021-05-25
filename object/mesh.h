@@ -70,18 +70,23 @@ public:
                 ss >> texcoord[1];
             }
         }
-
         f.close();
+
+        for (auto& triIndex : t) {
+            triangles.emplace_back(new Triangle{v[triIndex[0]], v[triIndex[1]], v[triIndex[2]], material});
+        }
+        for (auto& triangle : triangles) {
+            bound = bound + triangle->bound;
+        }
     }
 
     bool intersect(const Ray &ray, Hit &hit) const override {
         bool hav = false;
-        for (auto& triIndex : t) {
-            Triangle triangle(v[triIndex[0]], v[triIndex[1]], v[triIndex[2]], material);
-            hav |= triangle.intersect(ray, hit);
-        }
+        for (auto& triangle: triangles)
+            hav |= triangle->intersect(ray, hit);
         return hav;
     }
+    std::vector<Triangle*> triangles;
 
 protected:
     std::vector<Vec> v; // nodes
