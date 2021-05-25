@@ -113,6 +113,90 @@ Schlick 菲涅尔近似等式
 $反射占比 = F_0 + (1 - F_0) * (1-\cos \theta_i)^5$
 其中 $F_0 = {(n_a/n_b-1)^2 \over (n_a/n_b+1)^2}$ (这里a,b交换不影响计算结果)
 
+## TODO 各项同性，各向异性
+如：平底锅， CD片
+
+# Radiometry
+
+## Solid Angle
+
+其中 $\omega$ 为 solidangle （单位sr=steradian)
+类比圆形中 $\theta = {l\over r}$, 立体角定义为 $\omega = {A\over r^2}$
+
+有时为了简便计算，使用单位球，此时立体角直接就是表面积
+
+一个完整的球的立体角为 $4\pi$
+微分立体角如下图:
+
+![image-20210523133601800](/home/acha/Desktop/CG_final/README.assets/image-20210523133601800.png)
+
+## 辐射能 Radiance Energy $Q$
+
+以电磁波的形式发射，传递或接收的能量 (J=joule)
+
+## 辐射功率 Radiance Flux(Power) $\Phi={dQ\over dt}$
+
+Radiant Energy per unit time (W or lm=lumen)
+
+## 辐强度 Intensity $I(p, \omega) = {d\Phi(p, w)\over d\omega}$
+
+power per unit solid angle (cd=candela)
+
+## 辐照度 Irradiance $E(x)={d\Phi(x)\over dA}$
+
+power per unit area surface **(perpendicular/projected & 正面照射)** (lux)
+
+## 辐亮度 Radiance $L(p, \omega) = {d^2 \Phi (p, \omega)\over d\omega ~dAcos \theta}$
+
+![image-20210523134239820](/home/acha/Desktop/CG_final/README.assets/image-20210523134239820.png)
+
+Irradiance等于各个方向的Radiance投影到正面垂直方向叠加 
+$$
+\begin{aligned}
+E(p) &= \int_{H^2(单位半球面)} L(p, w) \cos \theta d\omega\\
+&= \int_{H^2(单位半球面)} L(p, w) (n\cdot w) d\omega
+\end{aligned}
+$$
+
+
+![image-20210523142143753](/home/acha/Desktop/CG_final/README.assets/image-20210523142143753.png)
+
+# BSDF
+
+s=scatter, r=reflect, t=transmit
+
+bsdf = brdf + btdf
+
+## BRDF
+
+$L_r(p, \omega_o) = \int_{H^2} f_r(p, w_i\to w_o) L_i(p, \omega_i) (n\cdot\omega_i)\omega_i$
+
+其中 $f_r$ 表示入射方向radiance对出射方向radiance的反射贡献
+
+## Emit
+
+$L_e(p, \omega_o)$ 表示自发光 radiance 分布
+
+## Rendering Equation
+
+$L_o(p, \omega_o) = L_e(p, \omega_o) + L_r(p, \omega_o)$
+
+抽象为： $I(u)=e(u) + \int I(v) K(u, v) dv$
+
+进一步抽象为 $L=E+KL$ , 即光线追踪，等式右边的L为递归求解，求出的结果乘一个系数加上自发光
+
+全局光照 指的就是反射0,1,2...无限次时的结果
+
+## Monte Carlo Integration
+
+$\int_a^b f(x)dx = \int_a^b (b-a)f(x) {dx\over b-a} = E_{x\sim \mathcal U(a,b)}[(b-a)f(x)]$
+
+更通用的，$\int f(x)dx = E[{f(x)\over p(x)}]$
+
+由于积分采样在光追中不太合适，1变10，10变100，指数爆炸，所以光追算法就只采样一个点
+
+## Microfacet Model
+
 # Image
 
 ## Sample
