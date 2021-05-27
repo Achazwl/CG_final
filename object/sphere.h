@@ -23,7 +23,7 @@ struct Sphere : Object3D {
 		} else if ((tim = b + delta) > eps) {
 		} else return false;
 		if (hiteps < tim && tim < hit.t) {
-			hit.set(tim, this->material, (ray.At(tim) - c).normal());
+			hit.set(tim, this, (ray.At(tim) - c).normal());
 			return true;
 		} else return false;
 	} 

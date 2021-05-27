@@ -24,9 +24,26 @@ struct Triangle : Object3D {
         if (b < 0 || b > 1) return false;
         if (a + b > 1) return false;
 
-        hit.set(t, material, div < 0 ? n : -n);
+        hit.set(t, this, div < 0 ? n : -n);
         return true;
 	}
+
+    Vec getColor(const Vec &p) const override {
+        if (material->useTexture()) {
+            if (material->filename == "images/wood.jpg")
+                return material->getcol(
+                    p.x/102,
+                    p.z/172
+                );
+            else if (material->filename == "images/Teacup.png")
+                return material->getcol(
+                    p.x/102,
+                    p.y/84
+                );
+        } else {
+            return material->col;
+        }
+    }
 
 protected:
     Vec n;

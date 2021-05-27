@@ -14,7 +14,7 @@
 class Mesh : public Object3D {
 
 public:
-    Mesh(const Vec& offset, double scale, const char *filename, Material *material) : Object3D(material) {
+    Mesh(const Vec &offset, const Vec &scale, const char *filename, Material *material) : Object3D(material) {
         std::ifstream f;
         f.open(filename);
         if (!f.is_open()) {
@@ -27,7 +27,6 @@ public:
         std::string texTok("vt");
         char bslash = '/', space = ' ';
         std::string tok;
-        int texID;
         while (true) {
             std::getline(f, line);
             if (f.eof()) {
@@ -49,31 +48,35 @@ public:
                 if (line.find(bslash) != std::string::npos) {
                     std::replace(line.begin(), line.end(), bslash, space);
                     std::stringstream facess(line);
-                    TriangleIndex trig;
+                    Index trig;
+                    Index texId;
                     facess >> tok;
+                    int texID[3];
                     for (int ii = 0; ii < 3; ii++) {
-                        facess >> trig[ii] >> texID;
+                        facess >> trig[ii] >> texId[ii];
                         trig[ii]--;
                     }
-                    t.push_back(trig);
+                    t.emplace_back(trig, texId);
                 } else {
-                    TriangleIndex trig;
+                    Index trig;
                     for (int ii = 0; ii < 3; ii++) {
                         ss >> trig[ii];
                         trig[ii]--;
                     }
-                    t.push_back(trig);
+                    t.emplace_back(trig, Index());
                 }
             } else if (tok == texTok) {
-                std::array<float,2> texcoord;
+                TextureCoord texcoord;
                 ss >> texcoord[0];
                 ss >> texcoord[1];
+                tex.push_back(texcoord);
             }
         }
         f.close();
 
         for (auto& triIndex : t) {
-            triangles.emplace_back(new Triangle{v[triIndex[0]], v[triIndex[1]], v[triIndex[2]], material});
+            auto& tri = triIndex.first;
+            triangles.emplace_back(new Triangle{v[tri[0]], v[tri[1]], v[tri[2]], material});
         }
         for (auto& triangle : triangles) {
             bound = bound + triangle->bound;
@@ -82,17 +85,21 @@ public:
 
     bool intersect(const Ray &ray, Hit &hit) const override {
         bool hav = false;
-        for (auto& triangle: triangles)
+        for (auto& triangle: triangles) {
             hav |= triangle->intersect(ray, hit);
+        }
         return hav;
     }
     std::vector<Triangle*> triangles;
 
 protected:
-    std::vector<Vec> v; // nodes
+    using Index = std::array<int, 3>; // counterclockwise winding is front face
+    using TextureCoord = std::array<float,2>;
 
-    using TriangleIndex = std::array<int, 3>; // counterclockwise winding is front face
-    std::vector<TriangleIndex> t; // which 3 nodes index above form a triangle
+    std::vector<Vec> v; // nodes
+    std::vector<TextureCoord> tex; // textures
+
+    std::vector<std::pair<Index, Index>> t; // which 3 nodes index above form a triangle
 };
 
 #endif // OBJ_MESH

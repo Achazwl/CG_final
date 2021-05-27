@@ -15,7 +15,7 @@ inline int toInt(double  x) {
 } 
 
 int main(int argc, char *argv[]) { 
-	static constexpr int w=512, h=384; // TODO bigger, better
+	static constexpr int w=1024, h=768; // TODO bigger, better
 	static constexpr int subpixel = 2, subpixel2 = subpixel*subpixel; // TODO bigger, better ?
 	int samps = atoi(argv[1]) / subpixel2; // TODO bigger, better
 	static constexpr double CAMERA_LEN_DISTANCE = 140;

@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <vector>
-#include "plane.h"
 #include "sphere.h"
 #include "triangle.h"
 #include "mesh.h"
@@ -26,15 +25,15 @@ class Group {
 public:
 	Group(const std::vector<Object3D*> &objs) {
 		for (auto& obj: objs) {
-			if (dynamic_cast<Mesh*>(obj)) {
-				Mesh *mesh = dynamic_cast<Mesh*>(obj);
-				for (auto& triangle: mesh->triangles) {
-					this->objs.emplace_back(triangle);
-				}
-			}
-			else {
+			// if (dynamic_cast<Mesh*>(obj)) { // TODO: temparary comment
+			// 	Mesh *mesh = dynamic_cast<Mesh*>(obj);
+			// 	for (auto& triangle: mesh->triangles) {
+			// 		this->objs.emplace_back(triangle);
+			// 	}
+			// }
+			// else {
 				this->objs.emplace_back(obj);
-			}
+			// }
 		}
 		root = build(this->objs);
 	}
@@ -93,12 +92,12 @@ public:
 	}
 
 	bool intersect(const Ray &ray, Hit &hit) const {
-        // bool hav = false;
-        // for (auto& obj: objs)
-        //     hav |= obj->intersect(ray, hit);
-        // return hav;
-		if (!root) return false;
-		return BVHintersect(root, ray, hit);
+        bool hav = false;
+        for (auto& obj: objs)
+            hav |= obj->intersect(ray, hit);
+        return hav;
+		// if (!root) return false; // TODO: temparar comment
+		// return BVHintersect(root, ray, hit);
 	}
 
 	bool BVHintersect(BVH *node, const Ray &ray, Hit &hit) const {
