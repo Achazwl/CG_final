@@ -28,6 +28,19 @@ struct Sphere : Object3D {
 		} else return false;
 	} 
 
+    Vec getColor(const Vec &p) const override {
+        if (material->useTexture()) {
+			auto v = p - c;
+            if (material->filename == "images/volleyball.jpg")
+                return material->getcol(
+					atan2(v.y, v.x) * 0.5 * M_1_PI,
+					asin(v.z / r) * M_1_PI + 0.5
+                );
+        } else {
+            return material->col;
+        }
+    }
+
 protected:
 	double r;
 	Vec c;

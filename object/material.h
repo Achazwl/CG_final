@@ -21,7 +21,7 @@ public:
 	}
 
 	Vec getcol(double a, double b) const {
-		int pw = (int(a * w) % w + w) % w, ph = (int(b * h) % h + h) % h;
+		int pw = (int(a * w) % w + w) % w, ph = (int((1-b) * h) % h + h) % h;
 		int idx = ph * w * c + pw * c;
 		int x = img[idx + 0], y = img[idx + 1], z = img[idx + 2];
 		return Vec(x, y, z) / 255.0;
