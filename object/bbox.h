@@ -1,13 +1,14 @@
 #ifndef OBJ_BBOX
 #define OBJ_BBOX
 
+#include "../config/config.h"
 #include "../vecs/vector3f.h"
 #include "../pt/ray.h"
 #include "../pt/hit.h"
 
 struct Bound {
-    static constexpr double minval = std::numeric_limits<double>::lowest();
-    static constexpr double maxval = std::numeric_limits<double>::max();
+    static constexpr F minval = -Config::inf;
+    static constexpr F maxval = Config::inf; 
     Vec mn, mx;
     Bound() : mn(maxval, maxval, maxval), mx(minval, minval, minval) { }
     Bound(Vec vec) : mn(vec), mx(vec) { }
@@ -21,7 +22,7 @@ struct Bound {
         return (mx - mn).argmax();
     }
 
-    double surfaceArea() const {
+    F surfaceArea() const {
         Vec d = mx - mn;
         return 2 * (d.x * d.y + d.x * d.z + d.y * d.z);
     }
@@ -45,7 +46,7 @@ struct Bound {
             if (ray.d[i] < 0)
                 std::swap(enter[i], exit[i]);
         }
-        double in = enter.max(), out = exit.min();
+        F in = enter.max(), out = exit.min();
         return in < out && out >= 0; // maybe ray origin is inside the box, thus in < 0 but out >= 0
     } 
 };

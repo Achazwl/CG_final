@@ -8,7 +8,7 @@ struct Ray { // P(t) = o + d * t
 
 	Ray(Vec o, Vec d) : o(o), d(d) {}
 
-	Vec At(double t) const { return o + d * t; }
+	Vec At(F t) const { return o + d * t; }
 }; 
 
 #endif // PT_RAY

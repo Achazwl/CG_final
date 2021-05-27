@@ -40,9 +40,8 @@ struct Triangle : Object3D {
                     p.x/102,
                     p.y/84
                 );
-        } else {
-            return material->col;
         }
+        return material->col;
     }
 
 protected:

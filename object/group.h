@@ -16,7 +16,7 @@ struct BVH {
 static constexpr int num_bucket = 12;
 struct Bucket {
 	int count = 0;
-	double cost;
+	F cost;
 	Bound bound;
 };
 
@@ -71,7 +71,7 @@ public:
 				}
 				buckets[i].cost = .125f + (countl * bl.surfaceArea() + countr * br.surfaceArea()) / node->bound.surfaceArea();
 			}
-			double mincost = buckets[0].cost;
+			F mincost = buckets[0].cost;
 			int where = 0;
 			for (int i = 1; i < num_bucket - 1; ++i) {
 				if (buckets[i].cost	< mincost) {

@@ -1,19 +1,25 @@
 #ifndef UTILS_RND
 #define UTILS_RND
 
+#include "../config/config.h"
 #include <cstdlib>
 #include <random>
 
-inline double rnd(double range=1) {
+inline F rnd(F range=1) {
 	static std::random_device rd;
 	static std::default_random_engine e{rd()}; // or std::default_random_engine e{rd()};
-	static std::uniform_real_distribution<double> dist{0, 1};
+	static std::uniform_real_distribution<F> dist{0, 1};
 	return dist(e) * range;
 }
 
-inline double tent_filter(double scale=1) {
-	double r = rnd(2);
-	double d = r < 1 ? sqrt(r)-1: 1-sqrt(2-r); 
+inline std::tuple<F, F, F> rndHSphere() {
+	F rad = rnd(2*M_PI), r2 = rnd(), r = sqrt(r2); 
+	return {cos(rad) * r, sin(rad) * r, sqrt(1 - r2)};
+}
+
+inline F tent_filter(F scale=1) {
+	F r = rnd(2);
+	F d = r < 1 ? sqrt(r)-1: 1-sqrt(2-r); 
 	return d * scale;
 }
 

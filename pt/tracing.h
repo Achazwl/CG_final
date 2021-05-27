@@ -18,7 +18,7 @@ inline Vec tracing(const Group &group, const Ray &ray, int depth, int E = 1) {
 	Vec nl = into ? hit.n : -hit.n;
 	Material* m = hit.o->material;
 	RGB f = hit.o->getColor(x); 
-	double p = f.max();
+	F p = f.max();
 
 	if (++depth > DEPTH_DECAY || !p) {
 		if (rnd() < p) f = f / p; // expeted = p * (f / p) + (1 - p) * 0 = f
@@ -27,9 +27,9 @@ inline Vec tracing(const Group &group, const Ray &ray, int depth, int E = 1) {
 
 	if (m->refl == Refl::DIFFUSE)
 	{                  
-		double r1=rnd(2*M_PI), r2=rnd(), r2s=sqrt(r2); 
-		Vec w = nl, u = w.ortho(), v = Vec::cross(w, u); 
-		Vec d = (u*cos(r1)*r2s + v*sin(r1)*r2s + w*sqrt(1-r2)).normal(); 
+		auto [a, b, c] = rndHSphere();
+		auto [u, v, w] = Vec::orthoBase(nl);
+		Vec d = (u * a + v * b + w * c).normal();
 		return m->e + f * tracing(group, Ray(x, d), depth, 1);
 	}
 	else {
@@ -40,21 +40,21 @@ inline Vec tracing(const Group &group, const Ray &ray, int depth, int E = 1) {
 		}
 		else if (m->refl == Refl::GLASS)
 		{
-			double na = into ? 1 : 1.5, nb = into ? 1.5 : 1;
-			double cosi = -Vec::dot(ray.d, nl);
-			double nn = na / nb;
-			double sinr2 = sqr(nn) * (1 - sqr(cosi)); // sin(r)^2 = 1 - (na/nb sin(i))^2
+			F na = into ? 1 : 1.5, nb = into ? 1.5 : 1;
+			F cosi = -Vec::dot(ray.d, nl);
+			F nn = na / nb;
+			F sinr2 = sqr(nn) * (1 - sqr(cosi)); // sin(r)^2 = 1 - (na/nb sin(i))^2
 			if (sinr2 > 1) { // 超过临界角，全反射, 按照MIRROR的方式算
 				return m->e + f * tracing(group, reflRay, depth); 
 			}
-			double cosr = sqrt(1-sinr2);
+			F cosr = sqrt(1-sinr2);
 			Vec rd = nn*(ray.d + nl * cosi) + (-nl) * cosr;
 
-			double F0 = sqr(nn-1)/sqr(nn+1);
-			double Re = F0 + (1-F0) * pow(1-cosi, 5), Tr = 1-Re; // 反射折射比
+			F F0 = sqr(nn-1)/sqr(nn+1);
+			F Re = F0 + (1-F0) * pow(1-cosi, 5), Tr = 1-Re; // 反射折射比
 
 			if (depth > 2) { // Russian roulette 避免递归分支过多
-				double P = .25 + 0.5 * Re; // 直接按Re做P会出现极端情况，缩放一下，保证有上下界[0.25,0.75]
+				F P = .25 + 0.5 * Re; // 直接按Re做P会出现极端情况，缩放一下，保证有上下界[0.25,0.75]
 				return m->e + f * (
 					rnd()<P ? tracing(group, reflRay,depth) * Re/P : tracing(group, Ray(x, rd), depth) * Tr/(1-P)
 				);

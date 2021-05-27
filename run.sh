@@ -1,3 +1,3 @@
-g++ -O3 -fopenmp main.cpp -o main
-time ./main 50
+g++ -O3 -fopenmp main.cpp -o main -std=c++17
+time ./main
 display image.ppm

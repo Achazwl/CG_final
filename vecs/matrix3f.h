@@ -4,7 +4,7 @@
 #include "vector3f.h"
 
 struct Matrix {
-    static double det(Vec a, Vec b, Vec c) {
+    static F det(Vec a, Vec b, Vec c) {
         return Matrix::det(
             a.x, a.y, a.z,
             b.x, b.y, b.z,
@@ -12,9 +12,9 @@ struct Matrix {
         );
     } 
 
-    static double det(  float m00, float m01, float m02,
-                        float m10, float m11, float m12,
-                        float m20, float m21, float m22 )
+    static F det(  F m00, F m01, F m02,
+                        F m10, F m11, F m12,
+                        F m20, F m21, F m22 )
     {
         return
             m00 * ( m11 * m22 - m12 * m21 ) -

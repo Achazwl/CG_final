@@ -1,14 +1,13 @@
 #ifndef OBJ_BASE
 #define OBJ_BASE
 
-#include <memory>
-
 class Object3D;
 #include "../pt/ray.h"
 #include "../pt/hit.h"
 #include "../vecs/vector3f.h"
 #include "bbox.h"
 #include "material.h"
+#include <memory>
 
 class Object3D { // Base class for all 3d entities.
 public:

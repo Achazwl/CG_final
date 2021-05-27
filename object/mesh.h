@@ -94,7 +94,7 @@ public:
 
 protected:
     using Index = std::array<int, 3>; // counterclockwise winding is front face
-    using TextureCoord = std::array<float,2>;
+    using TextureCoord = std::array<F,2>;
 
     std::vector<Vec> v; // nodes
     std::vector<TextureCoord> tex; // textures

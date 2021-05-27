@@ -4,21 +4,20 @@
 #include <algorithm>
 #include <memory>
 
+#include "config/config.h"
 #include "pt/tracing.h"
 #include "scene.h"
 
-inline double clamp(double x) {
-	return x<0 ? 0 : x>1 ? 1 : x;
-} 
-inline int toInt(double  x) {
+inline int toInt(F  x) {
 	return int(pow(clamp(x),1/2.2)*255+.5);
 } 
 
 int main(int argc, char *argv[]) { 
-	static constexpr int w=1024, h=768; // TODO bigger, better
-	static constexpr int subpixel = 2, subpixel2 = subpixel*subpixel; // TODO bigger, better ?
-	int samps = atoi(argv[1]) / subpixel2; // TODO bigger, better
-	static constexpr double CAMERA_LEN_DISTANCE = 140;
+	int w = Config::imageW, h = Config::imageH;
+	int subpixel = Config::num_subpixel, subpixel2 = subpixel * subpixel;
+	int samps = Config::spp;
+
+	static constexpr F CAMERA_LEN_DISTANCE = 140;
 	Ray cam(Vec(50,52,295.6), Vec(0,-0.042612,-1).normal());
 	Vec camx = Vec(w*.5135/h), camy = (Vec::cross(camx, cam.d)).normal()*.5135; // (x, y, -z) coordinate
 	Vec r;
@@ -32,10 +31,10 @@ int main(int argc, char *argv[]) {
 		Vec &col = img[(h-y-1)*w+x];
 		for (int sy = 0; sy < subpixel; sy++)
 		for (int sx = 0; sx < subpixel; sx++) { // loop subpixel
-			double cx = x + (sx+.5) / subpixel, cy = y + (sy+.5) / subpixel;
+			F cx = x + (sx+.5) / subpixel, cy = y + (sy+.5) / subpixel;
 			r = Vec();
 			for (int s = 0; s < samps; s++){ 
-				double dx = tent_filter(1/subpixel), dy = tent_filter(1/subpixel); // TODO: better filter (like bicubic)
+				F dx = tent_filter(1/subpixel), dy = tent_filter(1/subpixel); // TODO: better filter (like bicubic)
 				Vec d = camx * ( ( cx + dx ) / w - 0.5) +
 						camy * ( ( cy + dy ) / h - 0.5) + 
 						cam.d; 

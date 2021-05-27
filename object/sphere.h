@@ -4,8 +4,8 @@
 #include "base.h"
 
 struct Sphere : Object3D { 
-	static constexpr double eps = 1e-4;
-	Sphere(double r, Vec c, Material *material): Object3D(material), r(r), c(c) {
+	static constexpr F eps = 1e-4;
+	Sphere(F r, Vec c, Material *material): Object3D(material), r(r), c(c) {
 		bound = Bound(
 			c - Vec(r, r, r),
 			c + Vec(r, r, r)
@@ -13,10 +13,10 @@ struct Sphere : Object3D {
 	} 
 
 	bool intersect(const Ray &ray, Hit &hit) const override { // returns distance, 0 if nohit 
-		static double tim; // temparary usage
+		static F tim; // temparary usage
 		Vec oc = c - ray.o;
-		double b = oc.dot(ray.d);
-		double delta = b * b - oc.norm2() + r * r;
+		F b = oc.dot(ray.d);
+		F delta = b * b - oc.norm2() + r * r;
 		if (delta < 0) return false;
 		else delta = sqrt(delta); 
 		if ((tim = b - delta) > eps) {
@@ -36,13 +36,12 @@ struct Sphere : Object3D {
 					atan2(v.y, v.x) * 0.5 * M_1_PI,
 					asin(v.z / r) * M_1_PI + 0.5
                 );
-        } else {
-            return material->col;
         }
+		return material->col;
     }
 
 protected:
-	double r;
+	F r;
 	Vec c;
 }; 
 
