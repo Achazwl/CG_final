@@ -27,10 +27,36 @@ inline Vec tracing(const Group &group, const Ray &ray, int depth, int E = 1) {
 
 	if (m->refl == Refl::DIFFUSE)
 	{                  
-		auto [a, b, c] = rndHSphere();
+		auto [a, b, c] = rndCosWeightedHSphere();
 		auto [u, v, w] = Vec::orthoBase(nl);
 		Vec d = (u * a + v * b + w * c).normal();
 		return m->e + f * tracing(group, Ray(x, d), depth, 1);
+	}
+	else if (m->refl == Refl::GLOSS) {
+		auto [a, b, c] = rndCosWeightedHSphere();
+		auto [u, v, w] = Vec::orthoBase(nl);
+		Vec wi = -ray.d;
+		Vec wo = (u * a + v * b + w * c).normal();
+		Vec wh = (wi + wo).normal();
+		F cosi = Vec::dot(wi, nl), coso = Vec::dot(wo, nl), cosh = Vec::dot(wh, nl);
+		Vec Fr = Vec(1,1,1); // fresnel(Vec::dot(wi, wh));
+		// D(wh)
+			F ax = 0.8, ay = 0.7;
+			F sinh = sqrt(1 - sqr(cosh));
+			F e = (sqr(Vec::dot(wh, u) / ax) + sqr(Vec::dot(wh, v) / ay)) * sqr(sinh/cosh);
+			F D = 1 / (M_PI * ax * ay * sqr(sqr(cosh)) * sqr(1+e));
+		// G(wo, wi)
+			auto Lambda = [=](const Vec& w) {
+				F cosw = Vec::dot(w, nl);
+				F sinw = sqrt(1 - sqr(cosw));
+				F tanw = sinw / cosw;
+				F alpha = sqrt(sqr(Vec::dot(w, u) * ax) + sqr(Vec::dot(w, v) * ay));
+				F a = 1 / (alpha * tanw);
+				return a >= 1.6 ? 0 : (1 - 1.259 * a + 0.396 * a * a) / (3.535 * a + 2.181 * a * a);
+			};
+			F G = 1 / (1 + Lambda(wo) + Lambda(wi));
+		auto fr = f * D * G * Fr / (4 * cosi * coso);
+		return m->e + fr * tracing(group, Ray(x, wo), depth, 1);
 	}
 	else {
 		Ray reflRay(x, ray.d - 2 * Vec::dot(ray.d, nl) * nl);   

@@ -8,6 +8,7 @@ enum class Refl { // reflect types
 	DIFFUSE,
 	MIRROR,
 	GLASS,
+	GLOSS,
 }; 
 
 class Material {

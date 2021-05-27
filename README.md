@@ -161,7 +161,7 @@ $$
 
 ![image-20210523142143753](/home/acha/Desktop/CG_final/README.assets/image-20210523142143753.png)
 
-# BSDF
+# BxDF
 
 s=scatter, r=reflect, t=transmit
 
@@ -169,9 +169,39 @@ bsdf = brdf + btdf
 
 ## BRDF
 
-$L_r(p, \omega_o) = \int_{H^2} f_r(p, w_i\to w_o) L_i(p, \omega_i) (n\cdot\omega_i)\omega_i$
+$L_r(p, \omega_o) = \int_{H^2} f_r(p, w_i\to w_o) L_i(p, \omega_i) (n\cdot\omega_i) d\omega_i$
 
 其中 $f_r$ 表示入射方向radiance对出射方向radiance的反射贡献
+
+
+
+实现时, 使用monte-carlo积分，利用 $p(\omega) \equiv {1\over 2\pi}$  ，原式 $= E_{\omega\sim \mathcal U}\left[2\pi *f_r(p, w_i\to w_o) L_i(p, \omega_i) (n\cdot\omega_i)\right]$ 
+
+又  $\int_{0}^{\pi/2}\int_0^{2\pi} p(\theta, \varphi) d\theta d\varphi= 1$, 对比得 $p(\theta, \varphi) = {\sin\theta\over 2\pi}$ (展开dw即得)
+
+于是 $p(\varphi) = \int_0^{\pi/2} sin\theta/2\pi d\theta = 1/2\pi$, 所以 $\varphi$ 直接均匀随机$0\sim2\pi$即可
+
+$p(\theta|\varphi) = {p(\theta,\varphi) \over p(\varphi)} = \sin\theta$ , 求其分布函数，可知 $p(\theta<t) = 1-\cos t$
+
+因而 $p(\cos\theta<a) = p(\theta > \cos^{-1}a) = 1 - p(\theta<\cos^{-1}a) = 1-(1-a)=a$ 
+
+所以 $p(\cos\theta)\equiv 1$ 因而 $\cos\theta$ 直接均匀随机 $0\sim1$ 即可
+
+
+
+为了方便， 可以把 $(n\cdot w_i) = \cos \theta$ 在积分时考虑上
+
+由 $\int_0^{2\pi}\int_0^{\pi/2} c\cos\theta \sin\theta d\theta d\varphi = c\pi/2 \int_0^\pi sin(2t) d(2t) = c\pi$
+
+所以 $c = 1/\pi$,  $p(\omega) = c\cos\theta$, $p(\theta,\varphi) = c\cos\theta\sin\theta$ , 
+
+于是 $\int_{H^2} f_r(p, w_i\to w_o) L_i(p, \omega_i) (n\cdot\omega_i) d\omega_i = \pi \int_{H^2} f_r(p, w_i\to w_o) L_i(p, \omega_i) p(\omega) d\omega_i = E_{\omega}\left[\pi *f_r(p, w_i\to w_o) L_i(p, \omega_i) \right]$
+
+同理 $p(\varphi) = \int_0^{\pi/2} p(\theta,\varphi) = {1\over 2\pi}$ 均匀随机即可
+
+而 $p(\theta|\varphi) = \sin 2\theta$， 求其分布函数知 $p(\theta < t) = {1-\cos 2t\over 2} = \sin^2 t$ 
+
+$p(\sin^2\theta < a) = p(\theta < sin^{-2} a) = a$, 因而随机 $\sin^2\theta$ 直接均匀随机 $0\sim1$ 即可
 
 ## Emit
 
@@ -195,7 +225,9 @@ $\int_a^b f(x)dx = \int_a^b (b-a)f(x) {dx\over b-a} = E_{x\sim \mathcal U(a,b)}[
 
 由于积分采样在光追中不太合适，1变10，10变100，指数爆炸，所以光追算法就只采样一个点
 
-## Microfacet Model
+## Microfacet Model (Cook-Torrance)
+
+$f(w_i\to w_o) = {D(h) F(w_i, h) G(w_i, w_o, h)\over 4 (n\cdot w_i) (n\cdot w_o)}$
 
 # Image
 
