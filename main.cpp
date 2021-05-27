@@ -15,7 +15,7 @@ inline int toInt(F  x) {
 int main(int argc, char *argv[]) { 
 	int w = Config::imageW, h = Config::imageH;
 	int subpixel = Config::num_subpixel, subpixel2 = subpixel * subpixel;
-	int samps = Config::spp;
+	int samps = Config::spp / subpixel2;
 
 	static constexpr F CAMERA_LEN_DISTANCE = 140;
 	Ray cam(Vec(50,52,295.6), Vec(0,-0.042612,-1).normal());
