@@ -69,7 +69,7 @@ public:
 					br = br + buckets[j].bound;
 					countr += buckets[j].count;
 				}
-				buckets[i].cost = .125f + (countl * bl.surfaceArea() + countr * br.surfaceArea()) / node->bound.surfaceArea();
+				buckets[i].cost = 1 + (countl * bl.surfaceArea() + countr * br.surfaceArea()) / node->bound.surfaceArea();
 			}
 			F mincost = buckets[0].cost;
 			int where = 0;
