@@ -229,6 +229,8 @@ $\int_a^b f(x)dx = \int_a^b (b-a)f(x) {dx\over b-a} = E_{x\sim \mathcal U(a,b)}[
 
 $f(w_i\to w_o) = {D(h) F(w_i, h) G(w_i, w_o, h)\over 4 (n\cdot w_i) (n\cdot w_o)}$
 
+![img](/home/acha/Desktop/CG_final/README.assets/image-20210528114352339.png)
+
 # Image
 
 ## Sample

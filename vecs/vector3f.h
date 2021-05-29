@@ -7,7 +7,7 @@
 
 struct Vec {
 	F x, y, z;
-	Vec(F x=0, F y=0, F z=0):x(x), y(y), z(z) {}
+	explicit Vec(F x=0, F y=0, F z=0):x(x), y(y), z(z) {}
 	F operator [] (int d) const { return d == 0 ? x : (d == 1 ? y : z); }
 	F& operator [] (int d) { return d == 0 ? x : (d == 1 ? y : z); }
 	Vec operator + (const Vec &rhs) const { return Vec(x+rhs.x, y+rhs.y, z+rhs.z); } 

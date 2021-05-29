@@ -2,9 +2,8 @@
 #define OBJ_TRIANGLE
 
 #include "base.h"
-#include "../vecs/matrix3f.h"
 
-struct Triangle : Object3D { 
+struct Triangle : public Object3D { 
 	Triangle(const Vec &a, const Vec &b, const Vec &c, Material *m) : Object3D(m), v{a,b,c} {
         this->E1 = v[2] - v[0];
         this->E2 = v[1] - v[0];
@@ -32,8 +31,8 @@ struct Triangle : Object3D {
         if (material->useTexture()) {
             if (material->filename == "images/wood.jpg")
                 return material->getcol(
-                    p.x/102,
-                    p.z/172
+                    p.x/2048,
+                    p.z/910
                 );
             else if (material->filename == "images/Teacup.png")
                 return material->getcol(
@@ -41,7 +40,7 @@ struct Triangle : Object3D {
                     p.y/84
                 );
         }
-        return material->col;
+        return material->Kd;
     }
 
 protected:

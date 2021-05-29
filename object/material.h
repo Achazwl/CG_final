@@ -8,12 +8,11 @@ enum class Refl { // reflect types
 	DIFFUSE,
 	MIRROR,
 	GLASS,
-	GLOSS,
 }; 
 
 class Material {
 public:
-    Material(Vec e, Vec col, Refl refl, const char *filename=nullptr): e(e), col(col), refl(refl), filename(filename) {
+    Material(Vec e, Vec Kd, Vec Ks, Refl refl, const char *filename=nullptr): e(e), Kd(Kd), Ks(Ks), refl(refl), filename(filename) {
 		if (filename != nullptr) { // load texture
 			img = stbi_load(filename, &w, &h, &c, 0);
 		} else {
@@ -33,7 +32,7 @@ public:
 	}
 
 public:
-	Vec e, col;
+	Vec e, Kd, Ks;
 	Refl refl;
 	const char* filename;
 	u_char *img; int w, h, c;

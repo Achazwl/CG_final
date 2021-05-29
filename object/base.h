@@ -17,7 +17,7 @@ public:
     virtual bool intersect(const Ray &ray, Hit &hit) const = 0;
 
     virtual Vec getColor(const Vec &p) const {
-        return material->col;
+        return material->Kd;
     }
 
 public:

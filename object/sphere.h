@@ -3,7 +3,7 @@
 
 #include "base.h"
 
-struct Sphere : Object3D { 
+struct Sphere : public Object3D { 
 	static constexpr F eps = 1e-4;
 	Sphere(F r, Vec c, Material *material): Object3D(material), r(r), c(c) {
 		bound = Bound(
@@ -37,7 +37,7 @@ struct Sphere : Object3D {
 					asin(v.z / r) * M_1_PI + 0.5
                 );
         }
-		return material->col;
+		return material->Kd;
     }
 
 protected:
