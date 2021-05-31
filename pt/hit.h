@@ -11,10 +11,9 @@ struct Hit {
     const Object3D *o;
     Vec n;
 
-    Hit(F t): t(t), o(nullptr), n() {}
-    ~Hit() = default;
+    __device__ Hit(F t): t(t), o(nullptr), n() {}
 
-    void set(F t, const Object3D *o, const Vec &n) {
+    __device__ void set(F t, const Object3D *o, const Vec &n) {
         this->t = t;
         this->o= o;
         this->n = n;

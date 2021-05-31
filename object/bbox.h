@@ -7,31 +7,29 @@
 #include "../pt/hit.h"
 
 struct Bound {
-    static constexpr F minval = -Config::inf;
-    static constexpr F maxval = Config::inf; 
     Vec mn, mx;
-    Bound() : mn(maxval, maxval, maxval), mx(minval, minval, minval) { }
-    Bound(Vec vec) : mn(vec), mx(vec) { }
-    Bound(Vec mn, Vec mx) : mn(mn), mx(mx) { }
+    __device__ __host__ Bound() : mn(inf, inf, inf), mx(-inf, -inf, -inf) { }
+    __device__ __host__ Bound(Vec vec) : mn(vec), mx(vec) { }
+    __device__ __host__ Bound(Vec mn, Vec mx) : mn(mn), mx(mx) { }
 
-    Vec center() const {
+    __device__ Vec center() const {
         return (mn + mx) / 2;
     }
 
-    int maxdim() const {
+    __device__ int maxdim() const {
         return (mx - mn).argmax();
     }
 
-    F surfaceArea() const {
+    __device__ F surfaceArea() const {
         Vec d = mx - mn;
         return 2 * (d.x * d.y + d.x * d.z + d.y * d.z);
     }
 
-    Vec offset(const Vec &p) const {
+    __device__ Vec offset(const Vec &p) const {
         return (p - mn) / (mx - mn);
     }
 
-    Bound operator + (const Bound &rhs) const {
+    __device__ __host__ Bound operator + (const Bound &rhs) const {
         using namespace std;
         return Bound(
             Vec(min(mn.x, rhs.mn.x), min(mn.y, rhs.mn.y), min(mn.z, rhs.mn.z)),
@@ -39,7 +37,7 @@ struct Bound {
         );
     }
 
-    bool intersect(const Ray &ray) const {
+    __device__ bool intersect(const Ray &ray) const {
         Vec enter = (mn - ray.o) / ray.d;
         Vec exit = (mx - ray.o) / ray.d;
         for (int i = 0; i < 3; ++i) {

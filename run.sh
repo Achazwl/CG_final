@@ -1,3 +1,4 @@
-g++ -O3 -fopenmp main.cpp -o main -std=c++17
-time ./main
+nvcc -O3 main.cu -o main -std=c++17 -arch=compute_50 -code=sm_50
+echo compileend
+time ./main 50
 display image.ppm

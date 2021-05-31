@@ -3,3 +3,6 @@
 PA3
 pbrt-v4-scenes
 minpt
+smallpt-parallel-bvh-gpu
+smallpt
+smallpt-cpu

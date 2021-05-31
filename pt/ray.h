@@ -6,9 +6,9 @@
 struct Ray { // P(t) = o + d * t
 	Vec o, d;
 
-	Ray(Vec o, Vec d) : o(o), d(d) {}
+	__device__ __host__ Ray(Vec o, Vec d) : o(o), d(d) {}
 
-	Vec At(F t) const { return o + d * t; }
+	__device__ Vec At(F t) const { return o + d * t; }
 }; 
 
 #endif // PT_RAY

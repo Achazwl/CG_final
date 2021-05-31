@@ -4,14 +4,14 @@
 #include "base.h"
 
 struct Triangle : public Object3D { 
-	Triangle(const Vec &a, const Vec &b, const Vec &c, Material *m) : Object3D(m), v{a,b,c} {
+	__device__ __host__ Triangle(const Vec &a, const Vec &b, const Vec &c, Material *m) : Object3D(m), v{a,b,c} {
         this->E1 = v[2] - v[0];
         this->E2 = v[1] - v[0];
         this->n = Vec::cross(E1, E2).normal(); // 0, 1, 2 counter clockwise is front face
         bound = Bound(v[0]) + Bound(v[1]) + Bound(v[2]);
     }
 
-	bool intersect(const Ray& ray, Hit& hit) const override {
+	__device__ bool intersect(const Ray& ray, Hit& hit) const override {
 	    auto S = ray.o - v[0];
         auto p = Vec::cross(ray.d, E2), q = Vec::cross(S, E1); // temparary variable (common calculation)
         auto div = Vec::dot(E1, p);
@@ -27,7 +27,7 @@ struct Triangle : public Object3D {
         return true;
 	}
 
-    Vec getColor(const Vec &p) const override {
+    __device__ Vec getColor(const Vec &p) const override {
         if (material->useTexture()) {
             if (material->filename == "images/wood.jpg")
                 return material->getcol(

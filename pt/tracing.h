@@ -7,75 +7,83 @@
 #include "../object/group.h"
 #include "../vecs/vector3f.h"
 
-inline Vec tracing(const Group &group, const Ray &ray, int depth, int E = 1) {
-	static constexpr int DEPTH_DECAY = 5; // TODO: bigger ?
+inline __device__ Vec tracing(Group *group, Ray ray, curandState *st) {
+	Vec eres = Vec(0,0,0);
+	Vec fres = Vec(1,1,1);
+	int depth = 0;
+	//a + b(c+d()) = a+bc + bd() // recursive -> non-recursive
+	// return Vec(0.9, 0.2, 0.2);
 
-	Hit hit(1e20);
-	if (!group.intersect(ray, hit)) return Vec();
+	while (true) {
+		Hit hit(1e20);
+		if (!group->intersect(ray, hit)) return eres;
 
-	Vec x = ray.At(hit.t);
-	bool into = Vec::dot(hit.n, ray.d) < 0;
-	Vec nl = into ? hit.n : -hit.n;
-	Material* m = hit.o->material;
-	RGB f = hit.o->getColor(x); 
-	F p = f.max();
+		Vec x = ray.At(hit.t);
+		bool into = Vec::dot(hit.n, ray.d) < 0;
+		Vec nl = into ? hit.n : -hit.n;
+		Material* m = hit.o->material;
+		RGB f = hit.o->getColor(x); 
+		F p = f.max();
 
-	if (++depth > DEPTH_DECAY || !p) {
-		if (rnd() < p) f = f / p; // expeted = p * (f / p) + (1 - p) * 0 = f
-		else return m->e;
+		eres = eres + fres * m->e;
+
+		if (++depth > 5 || !p) { // TODO: bigger decay limit than 5?
+			if (rnd(1, st) < p) f = f / p; // expeted = p * (f / p) + (1 - p) * 0 = f
+			else return eres;
+		}
+
+		if (m->refl == Refl::DIFFUSE) { // TODO fix
+			F a, b, c; rndCosWeightedHSphere(a, b, c, st);
+			Vec u, v, w = nl; Vec::orthoBase(w, u, v);
+			Vec wo = -ray.d;
+			Vec wi = (u * a + v * b + w * c).normal();
+			Vec wh = (wi + wo).normal();
+			F cosi = Vec::dot(wi, nl), coso = Vec::dot(wo, nl), cosh = Vec::dot(wh, nl);
+			// Fresnel(wi, wh)
+				Vec F0 = m->Ks;
+				Vec Fr = F0 + (Vec(1,1,1) - F0) * pow5(1-Vec::dot(wi, wh));
+			// D(wh)
+				F ax = 0.8, ay = 0.7;
+				F sinh = sqrt(1 - sqr(cosh));
+				F e = (sqr(Vec::dot(wh, u) / ax) + sqr(Vec::dot(wh, v) / ay)) * sqr(sinh/cosh);
+				F D = 1 / (M_PI * ax * ay * pow4(cosh) * sqr(1+e));
+			// G(wo, wi)
+				auto Lambda = [=](const Vec& w) {
+					F cosw = Vec::dot(w, nl);
+					F sinw = sqrt(1 - sqr(cosw));
+					F tanw = sinw / cosw;
+					F alpha = sqrt(sqr(Vec::dot(w, u) * ax) + sqr(Vec::dot(w, v) * ay));
+					F a = 1 / (alpha * tanw);
+					return a >= 1.6 ? 0 : (1 - 1.259 * a + 0.396 * a * a) / (3.535 * a + 2.181 * a * a);
+				};
+				F G = 1 / (1 + Lambda(wo) + Lambda(wi));
+			auto fr = f + D * G * Fr / (4 * cosi * coso);
+			fres = fres * fr;
+			ray = Ray(x, wi);
+		}
+		else if (m->refl == Refl::GLASS) {
+			F a, b, c; rndCosWeightedHSphere(a, b, c, st);
+			Vec u, v, w = nl; Vec::orthoBase(w, u, v);
+			Vec wo = -ray.d;
+			Vec wi = (u * a + v * b + w * c).normal();
+			Vec wh = (wi + wo).normal();
+			F cosi = Vec::dot(wi, nl), coso = Vec::dot(wo, nl), cosh = Vec::dot(wh, nl);
+
+			Vec diffuse = (28. * M_1_PI / 23.) * f * (Vec(1,1,1) - m->Ks) * (1-pow5(1-0.5*cosi)) * (1-pow5(1-0.5*coso));
+			// Fresnel(wi, wh)
+				Vec F0 = m->Ks;
+				Vec Fr = F0 + (Vec(1,1,1) - F0) * pow5(1-Vec::dot(wi, wh));
+			// D(wh)
+				F ax = 0.1, ay = 0.1; // TODO
+				F sinh = sqrt(1 - sqr(cosh));
+				F e = (sqr(Vec::dot(wh, u) / ax) + sqr(Vec::dot(wh, v) / ay)) * sqr(sinh/cosh);
+				F D = 1 / (M_PI * ax * ay * pow4(cosh) * sqr(1+e));
+			Vec specular = D / ( 4 * Vec::dot(wi, wh) * max2(cosi, coso) ) * Fr;
+			auto fr = diffuse + specular;
+			fres = fres * fr * M_PI;
+			ray = Ray(x, wi);
+		}
 	}
-
-	if (m->refl == Refl::DIFFUSE) { // TODO fix
-		auto [a, b, c] = rndCosWeightedHSphere();
-		auto [u, v, w] = Vec::orthoBase(nl);
-		Vec wo = -ray.d;
-		Vec wi = (u * a + v * b + w * c).normal();
-		Vec wh = (wi + wo).normal();
-		F cosi = Vec::dot(wi, nl), coso = Vec::dot(wo, nl), cosh = Vec::dot(wh, nl);
-
-		// Fresnel(wi, wh)
-			Vec F0 = m->Ks;
-			Vec Fr = F0 + (Vec(1,1,1) - F0) * pow5(1-Vec::dot(wi, wh));
-		// D(wh)
-			F ax = 0.8, ay = 0.7;
-			F sinh = sqrt(1 - sqr(cosh));
-			F e = (sqr(Vec::dot(wh, u) / ax) + sqr(Vec::dot(wh, v) / ay)) * sqr(sinh/cosh);
-			F D = 1 / (M_PI * ax * ay * pow4(cosh) * sqr(1+e));
-		// G(wo, wi)
-			auto Lambda = [=](const Vec& w) {
-				F cosw = Vec::dot(w, nl);
-				F sinw = sqrt(1 - sqr(cosw));
-				F tanw = sinw / cosw;
-				F alpha = sqrt(sqr(Vec::dot(w, u) * ax) + sqr(Vec::dot(w, v) * ay));
-				F a = 1 / (alpha * tanw);
-				return a >= 1.6 ? 0 : (1 - 1.259 * a + 0.396 * a * a) / (3.535 * a + 2.181 * a * a);
-			};
-			F G = 1 / (1 + Lambda(wo) + Lambda(wi));
-		auto fr = f + D * G * Fr / (4 * cosi * coso);
-		return m->e + fr * tracing(group, Ray(x, wi), depth, 1);
-	}
-	else if (m->refl == Refl::GLASS) {
-		auto [a, b, c] = rndCosWeightedHSphere();
-		auto [u, v, w] = Vec::orthoBase(nl);
-		Vec wo = -ray.d;
-		Vec wi = (u * a + v * b + w * c).normal();
-		Vec wh = (wi + wo).normal();
-		F cosi = Vec::dot(wi, nl), coso = Vec::dot(wo, nl), cosh = Vec::dot(wh, nl);
-
-		Vec diffuse = (28. * M_1_PI / 23.) * f * (Vec(1,1,1) - m->Ks) * (1-pow5(1-0.5*cosi)) * (1-pow5(1-0.5*coso));
-		// Fresnel(wi, wh)
-			Vec F0 = m->Ks;
-			Vec Fr = F0 + (Vec(1,1,1) - F0) * pow5(1-Vec::dot(wi, wh));
-		// D(wh)
-			F ax = 0.1, ay = 0.1; // TODO
-			F sinh = sqrt(1 - sqr(cosh));
-			F e = (sqr(Vec::dot(wh, u) / ax) + sqr(Vec::dot(wh, v) / ay)) * sqr(sinh/cosh);
-			F D = 1 / (M_PI * ax * ay * pow4(cosh) * sqr(1+e));
-		Vec specular = D / ( 4 * Vec::dot(wi, wh) * std::max(cosi, coso) ) * Fr;
-		auto fr = diffuse + specular;
-		return m->e + fr * tracing(group, Ray(x, wi), depth, 1) * M_PI;
-	}
-	return Vec{};
 } 
 
 #endif // PT_TRACING

@@ -4,16 +4,15 @@
 #include "base.h"
 
 struct Sphere : public Object3D { 
-	static constexpr F eps = 1e-4;
-	Sphere(F r, Vec c, Material *material): Object3D(material), r(r), c(c) {
+	__device__ __host__ Sphere(F r, Vec c, Material *material): Object3D(material), r(r), c(c) {
 		bound = Bound(
 			c - Vec(r, r, r),
 			c + Vec(r, r, r)
 		);
 	} 
 
-	bool intersect(const Ray &ray, Hit &hit) const override { // returns distance, 0 if nohit 
-		static F tim; // temparary usage
+	__device__ bool intersect(const Ray &ray, Hit &hit) const override { // returns distance, 0 if nohit 
+		F tim; // temparary usage
 		Vec oc = c - ray.o;
 		F b = oc.dot(ray.d);
 		F delta = b * b - oc.norm2() + r * r;
@@ -28,7 +27,7 @@ struct Sphere : public Object3D {
 		} else return false;
 	} 
 
-    Vec getColor(const Vec &p) const override {
+    __device__ Vec getColor(const Vec &p) const override {
         if (material->useTexture()) {
 			auto v = p - c;
             if (material->filename == "images/volleyball.jpg")

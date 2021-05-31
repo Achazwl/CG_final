@@ -4,102 +4,76 @@
 #include "base.h"
 #include "triangle.h"
 #include "../vecs/vector3f.h"
+#include <stdio.h>
+#include <thrust/tuple.h>
+#include <thrust/device_vector.h>
 
-#include <vector>
-#include <array>
-#include <fstream>
-#include <sstream>
-#include <iostream>
-
-class Mesh : public Object3D {
+class MeshFile {
 
 public:
-    Mesh(const Vec &offset, const Vec &scale, const char *filename, Material *material) : Object3D(material) {
-        std::ifstream f;
-        f.open(filename);
-        if (!f.is_open()) {
-            std::cout << "Cannot open " << filename << "\n";
+    __host__ MeshFile(const char *filename) {
+        FILE *f = freopen(filename, "r", stdin);
+        if (f == nullptr) {
+            printf("Cannot open file : %s\n", filename);
             return;
         }
-        std::string line;
-        std::string vTok("v");
-        std::string fTok("f");
-        std::string texTok("vt");
-        char bslash = '/', space = ' ';
-        std::string tok;
+        char tok[5];
         while (true) {
-            std::getline(f, line);
-            if (f.eof()) {
+            if (scanf("%s", tok) != 1) {
                 break;
             }
-            if (line.size() < 3) {
+            if (tok[0] == '#') {
+                scanf("%*s[^\n]%*c");
                 continue;
             }
-            if (line.at(0) == '#') {
-                continue;
-            }
-            std::stringstream ss(line);
-            ss >> tok;
-            if (tok == vTok) {
+            if (tok[0] == 'v' && tok[1] == 0) {
                 Vec vec;
-                ss >> vec.x >> vec.y >> vec.z;
-                v.push_back(vec * scale + offset);
-            } else if (tok == fTok) {
-                if (line.find(bslash) != std::string::npos) {
-                    std::replace(line.begin(), line.end(), bslash, space);
-                    std::stringstream facess(line);
-                    Index trig;
-                    Index texId;
-                    facess >> tok;
-                    int texID[3];
-                    for (int ii = 0; ii < 3; ii++) {
-                        facess >> trig[ii] >> texId[ii];
-                        trig[ii]--;
-                    }
-                    t.emplace_back(trig, texId);
-                } else {
-                    Index trig;
-                    for (int ii = 0; ii < 3; ii++) {
-                        ss >> trig[ii];
-                        trig[ii]--;
-                    }
-                    t.emplace_back(trig, Index());
-                }
-            } else if (tok == texTok) {
-                TextureCoord texcoord;
-                ss >> texcoord[0];
-                ss >> texcoord[1];
-                tex.push_back(texcoord);
+                scanf("%lf %lf %lf", &vec.x, &vec.y, &vec.z);
+                v.push_back(vec);
             }
+            else if (tok[0] == 'f') {
+                // if (line.find(bslash) != std::string::npos) {
+                //     std::replace(line.begin(), line.end(), bslash, space);
+                //     std::stringstream facess(line);
+                //     Index trig;
+                //     Index texId;
+                //     facess >> tok;
+                //     int texID[3];
+                //     for (int ii = 0; ii < 3; ii++) {
+                //         scanf("%d/%d", trig[ii], texId[ii]);
+                //         trig[ii]--;
+                //     }
+                //     t.push_back({trig, texId});
+                // }
+                // else {
+                    Index trig;
+                    scanf("%d", &thrust::get<0>(trig)); thrust::get<0>(trig)--;
+                    scanf("%d", &thrust::get<1>(trig)); thrust::get<1>(trig)--;
+                    scanf("%d", &thrust::get<2>(trig)); thrust::get<2>(trig)--;
+                    t.push_back({trig, Index()});
+                // }
+            }
+            // else if (tok[0] == 'v' && tok[1] == 't') {
+            //     TextureCoord texcoord;
+            //     scanf("%lf %lf", &texcoord[0], &texcoord[1]);
+            //     tex.push_back(texcoord);
+            // }
         }
-        f.close();
+        fclose(f);
 
-        for (auto& triIndex : t) {
-            auto& tri = triIndex.first;
-            triangles.emplace_back(new Triangle{v[tri[0]], v[tri[1]], v[tri[2]], material});
-        }
-        for (auto& triangle : triangles) {
-            bound = bound + triangle->bound;
-        }
+        // for (auto node : v)
+        //     printf("%lf %lf %lf\n", node.x, node.y, node.z);
+        // for (auto node : t)
+        //     printf("%d %d %d\n", node.first[0], node.first[1], node.first[2]);
     }
 
-    bool intersect(const Ray &ray, Hit &hit) const override {
-        bool hav = false;
-        for (auto& triangle: triangles) {
-            hav |= triangle->intersect(ray, hit);
-        }
-        return hav;
-    }
-    std::vector<Triangle*> triangles;
+public:
+    using Index = thrust::tuple<int, int, int>; // counterclockwise winding is front face
+    // using TextureCoord = Array<F, 2>;
 
-protected:
-    using Index = std::array<int, 3>; // counterclockwise winding is front face
-    using TextureCoord = std::array<F,2>;
-
-    std::vector<Vec> v; // nodes
-    std::vector<TextureCoord> tex; // textures
-
-    std::vector<std::pair<Index, Index>> t; // which 3 nodes index above form a triangle
+    thrust::device_vector<Vec> v; // nodes
+    thrust::device_vector<thrust::pair<Index, Index>> t; // which 3 nodes index above form a triangle
+    // Vector<TextureCoord> tex; // textures
 };
 
 #endif // OBJ_MESH

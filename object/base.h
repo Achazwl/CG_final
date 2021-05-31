@@ -11,12 +11,14 @@ class Object3D;
 
 class Object3D { // Base class for all 3d entities.
 public:
-    Object3D(Material *material) : material(material) {}
-    virtual ~Object3D() = default;
+    __device__ __host__ Object3D(Material *material) : material(material) {}
 
-    virtual bool intersect(const Ray &ray, Hit &hit) const = 0;
+    virtual __device__ bool intersect(const Ray &ray, Hit &hit) const {
+        printf("holy shit\n");
+        return false;
+    }
 
-    virtual Vec getColor(const Vec &p) const {
+    virtual __device__ Vec getColor(const Vec &p) const {
         return material->Kd;
     }
 
