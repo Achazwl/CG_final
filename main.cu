@@ -58,51 +58,35 @@ __global__ void kernelCombResult(Vec *subpixel, Vec *pixel, Camera *cam) {
     pixel[idx] = res;
 }
 
-__global__ void init_kernel(MeshFile *mesh, Group *group) {
-	// auto mat = new Material(Vec(), Vec(.75, .25, .25), Vec(1,1,1)*0.02, Refl::GLASS);
-	// auto offset = Vec(1, 0, 0), scale = Vec(-1, 81.6, 170);
-	// for (auto& triIndex :  mesh->t) {
-	// 	group->objs.push_back(new Triangle{
-	// 		mesh->v[tri[0]] * scale + offset,
-	// 		mesh->v[tri[1]] * scale + offset,
-	// 		mesh->v[tri[2]] * scale + offset,
-	// 		mat
-	// 	});
-	// }
-	// group->objs.push_back(new Mesh(Vec(1, 0, 0), Vec(-1, 81.6, 170), mesh, new Material(Vec(), Vec(.75, .25, .25), Vec(1,1,1)*0.02, Refl::GLASS)));
-	// group->objs.push_back(new Mesh(Vec(99, 0, 0), Vec(1, 81.6, 170), mesh, new Material{Vec(),Vec(.25,.25,.75), Vec(1,1,1)*0.02, Refl::GLASS}));
-	// group->objs.push_back(new Mesh(Vec(1, 0, 0), Vec(98, 81.6, -1), mesh, new Material{Vec(), Vec(.75,.75,.75), Vec(1,1,1)*0.02, Refl::GLASS, "images/Teacup.png"}));
-	// group->objs.push_back(new Mesh(Vec(1, 0, 170), Vec(98, 81.6, 1), mesh, new Material{Vec(), Vec(.9,.75,.75), Vec(1,1,1)*0.02, Refl::GLASS}));
-	// group->objs.push_back(new Mesh(Vec(1, 0, 0), Vec(98, -1, 170), mesh, new Material{Vec(),Vec(.75,.75,.75), Vec(1,1,1)*0.04, Refl::GLASS, "images/wood.jpg"}));
-	// group->objs.push_back(new Sphere(600, Vec(50,681.6-.27,81.6), new Material{Vec(12,12,12),  Vec(), Vec(), Refl::GLASS}));
-	// group->objs.push_back(new Sphere(10.5, Vec(30,10.5,93),        new Material{Vec(),Vec(0.45, 0.45, 0.45), Vec(1,1,1)*0.03, Refl::GLASS}));
-	// group->objs.push_back(new Sphere(10.5, Vec(70,10.5,93),        new Material{Vec(),Vec(0.15, 0.15, 0.15), Vec(1,1,1)*0.98, Refl::GLASS}));
-}
-
 __host__ int ceil_div(int x, int y) {
 	return (x + y - 1) / y;
 }
 
+__global__ void test(Group *group) {
+	printf("%d %d %d\n", group->num_sph, group->num_tri, group->num_mat);
+	for (int i = 0; i < group->num_sph; ++i) {
+		printf("%lf %lf %lf %lf\n", group->sphs[i].r, group->sphs[i].c.x, group->sphs[i].c.y, group->sphs[i].c.z);
+		printf("%lf %lf %lf\n", group->mats[i].Kd.x, group->mats[i].Kd.y, group->mats[i].Kd.z);
+	}
+}
+
 int main(int argc, char *argv[]) { 
-	printf("run begin\n");
-	Group *group;
-	cudaMalloc((void**)&group, sizeof(Group));
-
-	MeshFile mesh("mesh/cube.obj");
-	init_kernel<<<1,1>>>(mesh.v, mesh.t, group);
-	cudaDeviceSynchronize(); // wait all
-
+	printf("initial begin\n");
+	Scene scene;
 	Camera *cam;
 	cudaMalloc((void**)&cam, sizeof(Camera));
-	cudaMemcpy(cam, &Scene::cam, sizeof(Camera), cudaMemcpyHostToDevice); // cpu -> gpu
+	cudaMemcpy(cam, scene.cam, sizeof(Camera), cudaMemcpyHostToDevice); // cpu -> gpu
+	Group *group = scene.group->to(); // cpu -> gpu
+	test<<<1,1>>>(group);
+	cudaDeviceSynchronize(); // wait all
 	printf("initial end\n");
 
 	curandState *states;
 	Vec *sub_result;
-	cudaMalloc((void**)&states, Scene::cam.n_sub*sizeof(curandState));
-	cudaMalloc((void**)&sub_result, Scene::cam.n_sub*sizeof(Vec));
+	cudaMalloc((void**)&states, scene.cam->n_sub*sizeof(curandState));
+	cudaMalloc((void**)&sub_result, scene.cam->n_sub*sizeof(Vec));
 	dim3 blockDim(blocksize, 1);
-	dim3 gridDim(ceil_div(Scene::cam.n_sub, blocksize), 1);
+	dim3 gridDim(ceil_div(scene.cam->n_sub, blocksize), 1);
 	kernelRayTrace<<<gridDim, blockDim>>>(group, cam, sub_result, states);
 	cudaPeekAtLastError();
 	printf("render begin\n");
@@ -110,17 +94,17 @@ int main(int argc, char *argv[]) {
 	printf("render end\n");
 
 	Vec *pixel_result;
-	cudaMalloc((void**)&pixel_result, Scene::cam.n_pixel*sizeof(Vec));
-	dim3 gridDim2(ceil_div(Scene::cam.n_pixel, blocksize), 1);
+	cudaMalloc((void**)&pixel_result, scene.cam->n_pixel*sizeof(Vec));
+	dim3 gridDim2(ceil_div(scene.cam->n_pixel, blocksize), 1);
 	kernelCombResult<<<gridDim2, blockDim>>>(sub_result, pixel_result, cam);
 	gpuErrchk( cudaDeviceSynchronize() ); // wait all
 	printf("combine end\n");
 
-	Vec *img = new RGB[Scene::cam.n_pixel]; 
-	cudaMemcpy(img, pixel_result, Scene::cam.n_pixel*sizeof(Vec), cudaMemcpyDeviceToHost); // gpu to cpu
+	Vec *img = new RGB[scene.cam->n_pixel]; 
+	cudaMemcpy(img, pixel_result, scene.cam->n_pixel*sizeof(Vec), cudaMemcpyDeviceToHost); // gpu to cpu
 	FILE *f = fopen("image.ppm", "w"); // write to image file
-	fprintf(f, "P3\n%d %d\n%d\n", Scene::cam.w, Scene::cam.h, 255); 
-	for (int i = 0; i < Scene::cam.n_pixel; i++) 
+	fprintf(f, "P3\n%d %d\n%d\n", scene.cam->w, scene.cam->h, 255); 
+	for (int i = 0; i < scene.cam->n_pixel; i++) 
 		fprintf(f,"%d %d %d ", toInt(img[i].x), toInt(img[i].y), toInt(img[i].z)); 
 	printf("image output end\n");
 
@@ -128,4 +112,7 @@ int main(int argc, char *argv[]) {
 	cudaFree(sub_result);
 	cudaFree(pixel_result);
 	cudaFree(group);
+	cudaFree(cam);
+
+	return 0;
 } 

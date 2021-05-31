@@ -3,15 +3,12 @@
 
 #include "base.h"
 
-struct Sphere : public Object3D { 
-	__device__ __host__ Sphere(F r, Vec c, Material *material): Object3D(material), r(r), c(c) {
-		bound = Bound(
-			c - Vec(r, r, r),
-			c + Vec(r, r, r)
-		);
-	} 
+struct Sphere { 
+	Sphere() = default;
+	Sphere(F r, Vec c): r(r), c(c) {} 
+	Sphere(const Sphere& rhs) = default;
 
-	__device__ bool intersect(const Ray &ray, Hit &hit) const override { // returns distance, 0 if nohit 
+	__device__ bool intersect(const Ray &ray, Hit &hit) const {
 		F tim; // temparary usage
 		Vec oc = c - ray.o;
 		F b = oc.dot(ray.d);
@@ -22,24 +19,12 @@ struct Sphere : public Object3D {
 		} else if ((tim = b + delta) > eps) {
 		} else return false;
 		if (hiteps < tim && tim < hit.t) {
-			hit.set(tim, this, (ray.At(tim) - c).normal());
+			hit.set(tim, (ray.At(tim) - c).normal());
 			return true;
 		} else return false;
 	} 
 
-    __device__ Vec getColor(const Vec &p) const override {
-        if (material->useTexture()) {
-			auto v = p - c;
-            if (material->filename == "images/volleyball.jpg")
-                return material->getcol(
-					atan2(v.y, v.x) * 0.5 * M_1_PI,
-					asin(v.z / r) * M_1_PI + 0.5
-                );
-        }
-		return material->Kd;
-    }
-
-protected:
+public: // TODO protected:
 	F r;
 	Vec c;
 }; 

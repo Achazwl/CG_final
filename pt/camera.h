@@ -6,7 +6,7 @@ struct Camera {
     F length;
     int w, h, subpixel, subpixel2, samps, n_pixel, n_sub;
 
-    __device__ __host__ Camera(Vec o, Vec x, Vec y, Vec _z, F length, int w, int h, int subpixel, int spp)
+    __host__ Camera(Vec o, Vec x, Vec y, Vec _z, F length, int w, int h, int subpixel, int spp)
         : o(o), x(x), y(y), _z(_z), length(length), w(w), h(h), subpixel(subpixel) {
             subpixel2 = subpixel * subpixel;
             samps = spp / subpixel2;

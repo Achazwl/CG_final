@@ -1,41 +1,66 @@
 #include "pt/camera.h"
 #include "object/group.h"
+#include "object/mesh.h"
 
-static int w = 1024, h = 768;
+struct Scene {
+	Camera *cam;
+	Group *group;
 
-namespace Scene {
-	Camera cam(
-		Vec(50,52,295.6), // o
-		Vec(w*.5135/h), // x
-		(Vec::cross(Vec(w*.5135/h), Vec(0,-0.042612,-1).normal())).normal()*.5135, // y
-		Vec(0,-0.042612,-1).normal(), // -z
-		140, // length
-		w, h, // w, h
-		2, // subpixel
-		50 // spp
-	);
+	explicit Scene() {
+		initCamera();
 
-	// Group group(Vector<Object3D*>{ // x, y, -z
-	// 	new Mesh(Vec(1, 0, 0), Vec(-1, 81.6, 170), "mesh/cube.obj", new Material(Vec(), Vec(.75, .25, .25), Vec(1,1,1)*0.02, Refl::GLASS)), // Left
-	// 	new Mesh(Vec(99, 0, 0), Vec(1, 81.6, 170), "mesh/cube.obj", new Material{Vec(),Vec(.25,.25,.75), Vec(1,1,1)*0.02, Refl::GLASS}), // Right
+		initObject();
+		group = new Group(spheres, triangles, materials);
+	}
 
-	// 	new Mesh(Vec(1, 0, 0), Vec(98, 81.6, -1), "mesh/cube.obj", new Material{Vec(), Vec(.75,.75,.75), Vec(1,1,1)*0.02, Refl::GLASS, "images/Teacup.png"}), // Back
-	// 	new Mesh(Vec(1, 0, 170), Vec(98, 81.6, 1), "mesh/cube.obj", new Material{Vec(), Vec(.9,.75,.75), Vec(1,1,1)*0.02, Refl::GLASS}), // Front
+private:
+	void initCamera() {
+		int w = 1024, h = 768;
+		Vec o(50,52,295.6); // o
+		Vec _z= Vec(0,-0.042612,-1).normal(); // -z
+		Vec x(w*.5135/h); // x
+		Vec y = Vec::cross(_z, x).normal()*.5135;
+		int length = 140;
+		int subpixel = 2;
+		int spp = 20;
 
-	// 	new Mesh(Vec(1, 0, 0), Vec(98, -1, 170), "mesh/cube.obj", new Material{Vec(),Vec(.75,.75,.75), Vec(1,1,1)*0.04, Refl::GLASS, "images/wood.jpg"}), //Botm 
-	// 	new Mesh(Vec(1, 81.6, 0), Vec(98, 1, 170), "mesh/cube.obj", new Material{Vec(), Vec(0, 0.9, 0), Vec(1,1,1)*0.02, Refl::GLASS}), // TOP
+		cam = new Camera(o, x, y, _z, length, w, h, subpixel, spp);
+	}
 
-	// 	new Sphere(600, Vec(50,681.6-.27,81.6), new Material{Vec(12,12,12),  Vec(), Vec(), Refl::GLASS}), //Light
+	void initObject() {
+		loadSphere(600, Vec(50, 681.33, 81.6), Material{Vec(12,12,12),  Vec(), Vec(), Refl::GLASS}); // light
+		loadSphere(10.5, Vec(30,10.5,93), Material{Vec(),Vec(0.45, 0.45, 0.45), Vec(1,1,1)*0.03, Refl::GLASS}); // left ball
+		loadSphere(10.5, Vec(70,10.5,93), Material{Vec(),Vec(0.15, 0.15, 0.15), Vec(1,1,1)*0.98, Refl::GLASS}); // right ball
+		MeshFile mesh("mesh/cube.obj");
+		loadMesh(Vec(1, 0, 0), Vec(-1, 81.6, 170), &mesh, Material{Vec(), Vec(.75, .25, .25), Vec(1,1,1)*0.02, Refl::GLASS}); // Left
+		loadMesh(Vec(99, 0, 0), Vec(1, 81.6, 170), &mesh, Material{Vec(),Vec(.25,.25,.75), Vec(1,1,1)*0.02, Refl::GLASS}); // Right
+		loadMesh(Vec(1, 0, 0), Vec(98, 81.6, -1), &mesh, Material{Vec(), Vec(.75,.75,.75), Vec(1,1,1)*0.02, Refl::GLASS}); // Back
+		loadMesh(Vec(1, 0, 170), Vec(98, 81.6, 1), &mesh, Material{Vec(), Vec(.9,.75,.75), Vec(1,1,1)*0.02, Refl::GLASS}); // Front
+		loadMesh(Vec(1, 0, 0), Vec(98, -1, 170), &mesh, Material{Vec(),Vec(.75,.75,.75), Vec(1,1,1)*0.04, Refl::GLASS}); // Bottom
+		loadMesh(Vec(1, 81.6, 0), Vec(98, 1, 170), &mesh, Material{Vec(), Vec(0, 0.9, 0), Vec(1,1,1)*0.02, Refl::GLASS}); // TOP
+	}
 
-	// 	// new Sphere(10.5, Vec(42,10.5,93),        new Material{Vec(),Vec(1,1,1)*.999, Vec(), Refl::GLASS, "images/volleyball.jpg"}), //ball glass
+private:
+	std::vector<Sphere> spheres;
+	std::vector<Triangle> triangles;
+	std::vector<Material> materials;
 
-	// 	// new Sphere(16.5, Vec(73,16.5,78),        new Material{Vec(),Vec(1,1,1)*.999, Vec(),  Refl::MIRROR  }), //ball mirror
+	void loadSphere(F radius, const Vec &o, const Material &material) {
+		spheres.push_back(Sphere{
+			radius,
+			o
+		});
+		materials.push_back(material);
+	}
 
-	// 	// new Sphere(10.5, Vec(42,10.5,93),        new Material{Vec(),Vec(),  Refl::GLOSS, "images/volleyball.jpg"}), // volleyball
-
-	// 	// new Mesh(Vec(50, 30, 50), Vec(1,1,1)*100, "mesh/bunny_200.obj", new Material(Vec(), Vec(1, 1, 1)*0.75, Refl::DIFFUSE)),
-
-	// 	new Sphere(10.5, Vec(30,10.5,93),        new Material{Vec(),Vec(0.45, 0.45, 0.45), Vec(1,1,1)*0.03, Refl::GLASS}), // left test
-	// 	new Sphere(10.5, Vec(70,10.5,93),        new Material{Vec(),Vec(0.15, 0.15, 0.15), Vec(1,1,1)*0.98, Refl::GLASS}), // right test
-	// }); // TODO: memory leak
-}
+	void loadMesh(const Vec &offset, const Vec &scale, MeshFile *mesh, const Material &material) {
+		for (auto& tri:  mesh->t) {
+			triangles.push_back(Triangle{
+				mesh->v[tri[0]] * scale + offset,
+				mesh->v[tri[1]] * scale + offset,
+				mesh->v[tri[2]] * scale + offset,
+			});
+			materials.push_back(material);
+		}
+	}
+};

@@ -21,8 +21,8 @@ inline __device__ Vec tracing(Group *group, Ray ray, curandState *st) {
 		Vec x = ray.At(hit.t);
 		bool into = Vec::dot(hit.n, ray.d) < 0;
 		Vec nl = into ? hit.n : -hit.n;
-		Material* m = hit.o->material;
-		RGB f = hit.o->getColor(x); 
+		Material* m = hit.m;
+		RGB f = m->Kd; // TODO: texture 
 		F p = f.max();
 
 		eres = eres + fres * m->e;
