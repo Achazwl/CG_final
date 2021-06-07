@@ -22,7 +22,6 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 __global__ void kernelRayTrace(Group *group, Camera *cam, Vec *result, curandState *states) {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	if (idx >= cam->n_sub) return;
-
 	int pixel_idx = idx / cam->subpixel2;
 	int y = pixel_idx / cam->w;
 	int x = pixel_idx % cam->w;
@@ -62,14 +61,6 @@ __host__ int ceil_div(int x, int y) {
 	return (x + y - 1) / y;
 }
 
-__global__ void test(Group *group) {
-	printf("%d %d %d\n", group->num_sph, group->num_tri, group->num_mat);
-	for (int i = 0; i < group->num_sph; ++i) {
-		printf("%lf %lf %lf %lf\n", group->sphs[i].r, group->sphs[i].c.x, group->sphs[i].c.y, group->sphs[i].c.z);
-		printf("%lf %lf %lf\n", group->mats[i].Kd.x, group->mats[i].Kd.y, group->mats[i].Kd.z);
-	}
-}
-
 int main(int argc, char *argv[]) { 
 	printf("initial begin\n");
 	Scene scene;
@@ -77,8 +68,6 @@ int main(int argc, char *argv[]) {
 	cudaMalloc((void**)&cam, sizeof(Camera));
 	cudaMemcpy(cam, scene.cam, sizeof(Camera), cudaMemcpyHostToDevice); // cpu -> gpu
 	Group *group = scene.group->to(); // cpu -> gpu
-	test<<<1,1>>>(group);
-	cudaDeviceSynchronize(); // wait all
 	printf("initial end\n");
 
 	curandState *states;

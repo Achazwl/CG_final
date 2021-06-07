@@ -24,7 +24,7 @@ struct Triangle {
         auto b = Vec::dot(ray.d, q) / div;
         if (b < 0 || b > 1) return false;
         if (a + b > 1) return false;
-        hit.set(t, div < 0 ? n : -n);
+        hit.set(t, div < 0 ? n : -n, p.x/2048, p.z/910); // TODO texture modify
         return true;
 	}
 

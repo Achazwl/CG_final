@@ -19,7 +19,7 @@ struct Sphere {
 		} else if ((tim = b + delta) > eps) {
 		} else return false;
 		if (hiteps < tim && tim < hit.t) {
-			hit.set(tim, (ray.At(tim) - c).normal());
+			hit.set(tim, (ray.At(tim) - c).normal()); // TODO texture modify
 			return true;
 		} else return false;
 	} 

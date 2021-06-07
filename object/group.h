@@ -52,7 +52,9 @@ public:
 		cudaMemcpy(group->tris, tris, num_tri*sizeof(Triangle), cudaMemcpyHostToDevice);
 		group->num_mat = num_mat;
 		cudaMalloc((void**)&group->mats, num_mat*sizeof(Material));
-		cudaMemcpy(group->mats, mats, num_mat*sizeof(Material), cudaMemcpyHostToDevice);
+		for (int i = 0; i < num_mat; ++i) {
+			cudaMemcpy(group->mats+i, mats[i].to(), sizeof(Material), cudaMemcpyHostToDevice);
+		}
 		Group *device;
 		cudaMalloc((void**)&device, sizeof(Group));
 		cudaMemcpy(device, group, sizeof(Group), cudaMemcpyHostToDevice);

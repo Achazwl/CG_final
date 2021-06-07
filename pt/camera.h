@@ -13,6 +13,10 @@ struct Camera {
             n_pixel = w * h;
             n_sub = n_pixel * subpixel2;
         }
+    __device__ Camera(const Camera &rhs)
+        : o(rhs.o), x(rhs.x), y(rhs.y), _z(rhs._z), length(rhs.length),
+        w(rhs.w), h(rhs.h), subpixel(rhs.subpixel), subpixel2(rhs.subpixel2), samps(rhs.samps),
+        n_pixel(rhs.n_pixel), n_sub(rhs.n_sub) {}
 };
 
 #endif // PT_CAMERA

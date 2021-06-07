@@ -9,14 +9,15 @@ constexpr F hiteps = 1e-3;
 struct Hit {
     F t;
     Material *m;
-    // TODO add uv
+    F u, v;
     Vec n;
 
     __device__ Hit(F t): t(t), n() {}
 
-    __device__ void set(F t, const Vec &n) {
+    __device__ void set(F t, const Vec &n, F u=-1, F v=-1) {
         this->t = t;
         this->n = n;
+        this->u = u, this->v = v;
     }
 
     __device__ void setm(Material *m) {

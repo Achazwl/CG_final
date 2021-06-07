@@ -22,7 +22,7 @@ inline __device__ Vec tracing(Group *group, Ray ray, curandState *st) {
 		bool into = Vec::dot(hit.n, ray.d) < 0;
 		Vec nl = into ? hit.n : -hit.n;
 		Material* m = hit.m;
-		RGB f = m->Kd; // TODO: texture 
+		RGB f = m->getColor(hit.u, hit.v); // TODO: texture 
 		F p = f.max();
 
 		eres = eres + fres * m->e;
@@ -57,8 +57,8 @@ inline __device__ Vec tracing(Group *group, Ray ray, curandState *st) {
 					return a >= 1.6 ? 0 : (1 - 1.259 * a + 0.396 * a * a) / (3.535 * a + 2.181 * a * a);
 				};
 				F G = 1 / (1 + Lambda(wo) + Lambda(wi));
-			auto fr = f + D * G * Fr / (4 * cosi * coso);
-			fres = fres * fr;
+			auto fr = D * G * Fr / (4 * cosi * coso);
+			fres = fres * fr * M_PI;
 			ray = Ray(x, wi);
 		}
 		else if (m->refl == Refl::GLASS) {
