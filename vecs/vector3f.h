@@ -38,10 +38,34 @@ struct Vec {
 	__device__ __host__ F max() const { return x>y&&x>z ? x : (y>z ? y : z); }
 	__device__ __host__ int argmin() const { return x<y&&x<z ? 0 : (y<z ? 1 : 2); }
 	__device__ __host__ int argmax() const { return x>y&&x>z ? 0 : (y>z ? 1 : 2); }
+	__device__ __host__ static Vec min(const Vec &lhs, const Vec &rhs) {
+		return Vec(
+			lhs.x < rhs.x ? lhs.x : rhs.x,
+			lhs.y < rhs.y ? lhs.y : rhs.y,
+			lhs.z < rhs.z ? lhs.z : rhs.z
+		);
+	}
+	__device__ __host__ static Vec max(const Vec &lhs, const Vec &rhs) {
+		return Vec(
+			lhs.x > rhs.x ? lhs.x : rhs.x,
+			lhs.y > rhs.y ? lhs.y : rhs.y,
+			lhs.z > rhs.z ? lhs.z : rhs.z
+		);
+	}
+
+	__device__ __host__ static void swap(Vec &lhs, Vec &rhs) {
+		Vec tmp = lhs;
+		lhs = rhs;
+		rhs = tmp;
+	}
 
 	__device__ __host__ static void orthoBase(Vec w, Vec &u, Vec &v) { // input w is normalized
 		u = (fabs(w.x)>.1?Vec(0,1):Vec(1)).cross(w).normal();
 		v = cross(w, u);
+	}
+
+	__device__ __host__ void debug(char end='\n') const {
+		printf("%lf %lf %lf%c", x, y, z, end);
 	}
 }; 
 

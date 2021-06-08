@@ -16,6 +16,12 @@ inline __device__ __host__ F clamp(F x) {
 	return x<0 ? 0 : x>1 ? 1 : x;
 } 
 
+inline __device__ void swap(F &x, F &y) {
+	F tmp = x;
+	x = y;
+	y = tmp;
+}
+
 inline __host__ int toInt(F  x) {
 	return int(pow(clamp(x),1/2.2)*255+.5);
 } 

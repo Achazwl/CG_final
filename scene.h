@@ -22,15 +22,15 @@ private:
 		Vec y = Vec::cross(_z, x).normal()*.5135;
 		int length = 140;
 		int subpixel = 2;
-		int spp = 10;
+		int spp = 500;
 
 		cam = new Camera(o, x, y, _z, length, w, h, subpixel, spp);
 	}
 
 	void initObject() {
 		loadSphere(600, Vec(50, 681.33, 81.6), Material{Vec(12,12,12),  Vec(), Vec(), Refl::GLASS}); // light
-		loadSphere(10.5, Vec(30,10.5,93), Material{Vec(),Vec(0.45, 0.45, 0.45), Vec(1,1,1)*0.03, Refl::GLASS}); // left ball
-		loadSphere(10.5, Vec(70,10.5,93), Material{Vec(),Vec(0.15, 0.15, 0.15), Vec(1,1,1)*0.98, Refl::GLASS}); // right ball
+		// loadSphere(10.5, Vec(30,10.5,93), Material{Vec(),Vec(0.45, 0.45, 0.45), Vec(1,1,1)*0.03, Refl::GLASS}); // left ball
+		// loadSphere(10.5, Vec(70,10.5,93), Material{Vec(),Vec(0.15, 0.15, 0.15), Vec(1,1,1)*0.98, Refl::GLASS}); // right ball
 
 		MeshFile mesh("mesh/cube.obj");
 		loadMesh(Vec(1, 0, 0), Vec(-1, 81.6, 170), &mesh, Material{Vec(), Vec(.75, .25, .25), Vec(1,1,1)*0.02, Refl::GLASS}); // Left
@@ -40,13 +40,13 @@ private:
 		loadMesh(Vec(1, 0, 0), Vec(98, -1, 170), &mesh, Material{Vec(),Vec(.75,.75,.75), Vec(1,1,1)*0.01, Refl::GLASS, "images/wood.jpg"}); // Bottom
 		loadMesh(Vec(1, 81.6, 0), Vec(98, 1, 170), &mesh, Material{Vec(), Vec(0, 0.9, 0), Vec(1,1,1)*0.02, Refl::GLASS}); // TOP
 
-		loadRevSurface(Vec(50, 0, 50), Vec(), std::vector<Vec>{
-			Vec{0, 0},
+		loadRevSurface(Vec(50, 0, 80), 1, std::vector<Vec>{
+			Vec{10, 5},
 			Vec{20, 10},
 			Vec{30, 20},
 			Vec{20, 50},
 			Vec{10, 60},
-		}, Material{Vec(), Vec(0.9, 0, 0), Vec(1,1,1)*0.02, Refl::GLASS});
+		}, Material{Vec(), Vec(0.9, 0.1, 0.1), Vec(1,1,1)*0.02, Refl::GLASS});
 	}
 
 private:
@@ -74,7 +74,7 @@ private:
 		}
 	}
 
-	void loadRevSurface(const Vec &offset, const Vec &scale, const std::vector<Vec> controls, const Material &material) {
+	void loadRevSurface(const Vec &offset, F scale, const std::vector<Vec> controls, const Material &material) {
 		revsurfaces.push_back(RevSurface(offset, scale, controls));
 		materials.push_back(material);
 	}
