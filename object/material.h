@@ -22,7 +22,7 @@ public:
 	}
 	Material(const Material &rhs) = default;
 
-	__device__ Vec getColor(F u, F v) const {
+	__device__ Vec getColor(F u, F v) const { // TODO cudaTexture pool
 		if (img == nullptr) return Kd;
 		int pw = (int(u * w) % w + w) % w, ph = (int((1-v) * h) % h + h) % h;
 		int idx = (ph * w + pw) * c;

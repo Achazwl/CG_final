@@ -7,7 +7,8 @@
 
 struct Vec {
 	F x, y, z;
-	__device__ __host__ explicit Vec(F x=0, F y=0, F z=0):x(x), y(y), z(z) {}
+	__device__ __host__ explicit Vec(F x=0, F y=0, F z=0) : x(x), y(y), z(z) {}
+	__device__ __host__ Vec(const Vec& rhs) : x(rhs.x), y(rhs.y), z(rhs.z) {}
 
 	__device__ __host__ F operator [] (int d) const { return d == 0 ? x : (d == 1 ? y : z); }
 	__device__ __host__ F& operator [] (int d) { return d == 0 ? x : (d == 1 ? y : z); }
