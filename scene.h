@@ -22,7 +22,7 @@ private:
 		Vec y = Vec::cross(_z, x).normal()*.5135;
 		int length = 140;
 		int subpixel = 2;
-		int spp = 500;
+		int spp = 20;
 
 		cam = new Camera(o, x, y, _z, length, w, h, subpixel, spp);
 	}
@@ -40,13 +40,13 @@ private:
 		loadMesh(Vec(1, 0, 0), Vec(98, -1, 170), &mesh, Material{Vec(),Vec(.75,.75,.75), Vec(1,1,1)*0.01, Refl::GLASS, "images/wood.jpg"}); // Bottom
 		loadMesh(Vec(1, 81.6, 0), Vec(98, 1, 170), &mesh, Material{Vec(), Vec(0, 0.9, 0), Vec(1,1,1)*0.02, Refl::GLASS}); // TOP
 
-		loadRevSurface(Vec(50, 0, 80), 1, std::vector<Vec>{
-			Vec{10, 5},
-			Vec{20, 10},
-			Vec{30, 20},
-			Vec{20, 50},
-			Vec{10, 60},
-		}, Material{Vec(), Vec(0.9, 0.1, 0.1), Vec(1,1,1)*0.02, Refl::GLASS});
+		// loadRevSurface(Vec(50, 0, 80), 1, std::vector<Vec>{
+		// 	Vec{10, 5},
+		// 	Vec{20, 10},
+		// 	Vec{30, 20},
+		// 	Vec{20, 50},
+		// 	Vec{10, 60},
+		// }, Material{Vec(), Vec(0.9, 0.1, 0.1), Vec(1,1,1)*0.02, Refl::GLASS});
 	}
 
 private:

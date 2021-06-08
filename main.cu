@@ -19,6 +19,12 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
    }
 }
 
+__global__ void initSubResult(Camera *cam, Vec *result) {
+	int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	if (idx >= cam->n_sub) return;
+	result[idx] = Vec();
+}
+
 __global__ void kernelRayTrace(Group *group, Camera *cam, Vec *result, curandState *states) {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	if (idx >= cam->n_sub) return;
@@ -31,26 +37,23 @@ __global__ void kernelRayTrace(Group *group, Camera *cam, Vec *result, curandSta
 	curand_init(y*y*y, idx, 0, &states[idx]); // TODO: no set seed each thread
 	curandState st = states[idx];
 
-	Vec r = Vec();
 	F cx = x + (sx+.5) / cam->subpixel, cy = y + (sy+.5) / cam->subpixel;
-	for (int s = 0; s < cam->samps; s++){ 
-		F dx = tent_filter(1/cam->subpixel, &st), dy = tent_filter(1/cam->subpixel, &st); // TODO: better filter (like bicubic)
-		Vec d = cam->x * ( ( cx + dx ) / cam->w - 0.5) +
-				cam->y * ( ( cy + dy ) / cam->h - 0.5) + 
-				cam->_z; 
-		r = r + tracing(group, Ray(cam->o+d*cam->length, d.normal()), &st) / cam->samps; // average over samps
-	}
-	result[idx] = r;
+	F dx = tent_filter(1/cam->subpixel, &st), dy = tent_filter(1/cam->subpixel, &st); // TODO: better filter (like bicubic)
+	Vec d = cam->x * ( ( cx + dx ) / cam->w - 0.5) +
+			cam->y * ( ( cy + dy ) / cam->h - 0.5) + 
+			cam->_z; 
+	result[idx] = result[idx] + tracing(group, Ray(cam->o+d*cam->length, d.normal()), &st); // average over samps
 }
 
-__global__ void kernelCombResult(Vec *subpixel, Vec *pixel, Camera *cam) {
+__global__ void kernelCombResult(Vec *subpixel, Vec *pixel, Camera *cam, int samp) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= cam->n_pixel) return;
 
     Vec res = Vec();
+	F div = 1. / samp;
     #pragma unroll
     for (int i = 0; i < cam->subpixel2; i++) {
-        Vec sub = subpixel[idx * cam->subpixel2 + i];
+        Vec sub = subpixel[idx * cam->subpixel2 + i] * div;
         res = res + Vec(clamp(sub.x), clamp(sub.y), clamp(sub.z)) / cam->subpixel2;
     }
 
@@ -72,31 +75,35 @@ int main(int argc, char *argv[]) {
 
 	curandState *states;
 	Vec *sub_result;
+	Vec *pixel_result;
 	cudaMalloc((void**)&states, scene.cam->n_sub*sizeof(curandState));
 	cudaMalloc((void**)&sub_result, scene.cam->n_sub*sizeof(Vec));
-	dim3 blockDim(blocksize, 1);
-	dim3 gridDim(ceil_div(scene.cam->n_sub, blocksize), 1);
-	kernelRayTrace<<<gridDim, blockDim>>>(group, cam, sub_result, states);
-	cudaPeekAtLastError();
-	printf("render begin\n");
-	gpuErrchk( cudaDeviceSynchronize() ); // wait all
-	printf("render end\n");
-
-	Vec *pixel_result;
 	cudaMalloc((void**)&pixel_result, scene.cam->n_pixel*sizeof(Vec));
-	dim3 gridDim2(ceil_div(scene.cam->n_pixel, blocksize), 1);
-	kernelCombResult<<<gridDim2, blockDim>>>(sub_result, pixel_result, cam);
-	gpuErrchk( cudaDeviceSynchronize() ); // wait all
-	printf("combine end\n");
+	initSubResult<<<dim3(scene.cam->n_sub), dim3(1)>>>(cam, sub_result);
 
-	Vec *img = new RGB[scene.cam->n_pixel]; 
-	cudaMemcpy(img, pixel_result, scene.cam->n_pixel*sizeof(Vec), cudaMemcpyDeviceToHost); // gpu to cpu
-	FILE *f = fopen("image.ppm", "w"); // write to image file
-	fprintf(f, "P3\n%d %d\n%d\n", scene.cam->w, scene.cam->h, 255); 
-	for (int i = 0; i < scene.cam->n_pixel; i++) 
-		fprintf(f,"%d %d %d ", toInt(img[i].x), toInt(img[i].y), toInt(img[i].z)); 
-	printf("image output end\n");
+	dim3 blockDim(blocksize);
+	for (int samp = 0; samp <= scene.cam->samps; ++samp) {
+		fprintf(stderr, "\rrendering %6d of %d", samp, scene.cam->samps);
+		if (samp > 0) {
+			dim3 gridDim(ceil_div(scene.cam->n_sub, blocksize));
+			kernelRayTrace<<<gridDim, blockDim>>>(group, cam, sub_result, states);
+			cudaDeviceSynchronize(); // wait all
+		}
 
+		dim3 gridDim2(ceil_div(scene.cam->n_pixel, blocksize));
+		kernelCombResult<<<gridDim2, blockDim>>>(sub_result, pixel_result, cam, samp);
+		cudaDeviceSynchronize(); // wait all
+
+		Vec *img = new RGB[scene.cam->n_pixel]; 
+		cudaMemcpy(img, pixel_result, scene.cam->n_pixel*sizeof(Vec), cudaMemcpyDeviceToHost); // gpu to cpu
+		FILE *f = fopen("image.ppm", "w");
+		fprintf(f, "P3\n%d %d\n%d\n", scene.cam->w, scene.cam->h, 255); 
+		for (int i = 0; i < scene.cam->n_pixel; i++) {
+			fprintf(f, "%d %d %d ", toInt(img[i].x), toInt(img[i].y), toInt(img[i].z));
+		}
+		delete[] img;
+	}
+		
 	cudaFree(states);
 	cudaFree(sub_result);
 	cudaFree(pixel_result);
