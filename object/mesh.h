@@ -17,27 +17,38 @@ public:
             printf("Cannot open file : %s\n", filename);
             return;
         }
-        char tok[5];
+        char tok[20];
         while (true) {
-            if (scanf("%s", tok) != 1) {
-                break;
-            }
+            int eof = scanf("%s", tok) != 1;
+            if (eof) break;
             if (tok[0] == '#') {
-                scanf("%*s[^\n]%*c");
-                continue;
+                eof = scanf("%*s[^\n]%*c");
             }
-            if (tok[0] == 'v') {
+            else if (tok[0] == 'v' && tok[1] == 0) {
                 Vec vec;
-                scanf("%lf %lf %lf", &vec.x, &vec.y, &vec.z);
+                eof = scanf("%lf %lf %lf", &vec.x, &vec.y, &vec.z);
                 v.push_back(vec);
             }
             else if (tok[0] == 'f') {
                 Index trig;
                 for (int ii = 0; ii < 3; ++ii) {
-                    scanf("%d", &trig[ii]);
+                    eof = scanf("%d", &trig[ii]);
                     trig[ii]--;
                 }
                 t.push_back(trig);
+            }
+            else if (tok[0] == 'v' && tok[1] == 't') {
+                F u, v;
+                eof = scanf("%lf %lf", &u, &v);
+            }
+            else if (tok[0] == 'v' && tok[1] == 'n') {
+                Vec vec;
+                eof = scanf("%lf %lf %lf", &vec.x, &vec.y, &vec.z);
+            }
+            else {
+                static char tmp[100007], *unused;
+                printf("unknown type in mesh file: %s\n", tok);
+                unused = fgets(tmp, 100000, stdin);
             }
         }
         fclose(f);

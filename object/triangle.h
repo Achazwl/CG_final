@@ -9,6 +9,7 @@ struct Triangle {
         this->E1 = v[2] - v[0];
         this->E2 = v[1] - v[0];
         this->n = Vec::cross(E1, E2).normal(); // 0, 1, 2 counter clockwise is front face
+        this->bound = Bound(v[0]) + Bound(v[1]) + Bound(v[2]);
     }
 	Triangle(const Triangle &rhs) = default;
 
@@ -32,6 +33,7 @@ public: // TODO protected:
     Vec n;
     Vec v[3];
     Vec E1, E2;
+    Bound bound;
 }; 
 
 #endif // OBJ_TRIANGLE

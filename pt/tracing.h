@@ -2,6 +2,7 @@
 #define PT_TRACING
 
 #include "ray.h"
+#include "hit.h"
 #include "../utils/rnd.h"
 #include "../utils/math.h"
 #include "../object/group.h"
@@ -78,7 +79,7 @@ inline __device__ Vec tracing(Group *group, Ray ray, curandState *st) {
 				F sinh = sqrt(1 - sqr(cosh));
 				F e = (sqr(Vec::dot(wh, u) / ax) + sqr(Vec::dot(wh, v) / ay)) * sqr(sinh/cosh);
 				F D = 1 / (M_PI * ax * ay * pow4(cosh) * sqr(1+e));
-			Vec specular = D / ( 4 * Vec::dot(wi, wh) * max2(cosi, coso) ) * Fr;
+			Vec specular = D / ( 4 * Vec::dot(wi, wh) * max(cosi, coso) ) * Fr;
 			auto fr = diffuse + specular;
 			fres = fres * fr * M_PI;
 			ray = Ray(x, wi);

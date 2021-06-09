@@ -30,7 +30,7 @@ public:
 		return Vec(x, y, z) / 255.0;
 	}
 
-	__host__ Material* to() const {
+	Material* to() const {
 		Material* mat = new Material(*this);
 		if (img == nullptr) return mat;
 		cudaMalloc((void**)&mat->img, w*h*c*sizeof(u_char));

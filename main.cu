@@ -19,6 +19,9 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
    }
 }
 
+__global__ void debug(Group *group) {
+}
+
 __global__ void initSubResult(Camera *cam, Vec *result) {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	if (idx >= cam->n_sub) return;
@@ -34,7 +37,7 @@ __global__ void kernelRayTrace(Group *group, Camera *cam, Vec *result, curandSta
 	int sy = (idx % cam->subpixel2) / cam->subpixel;
 	int sx = (idx % cam->subpixel2) % cam->subpixel;
 
-	curand_init(y*y*y, idx, 0, &states[idx]); // TODO: no set seed each thread
+	curand_init(y*y*y, idx, 0, &states[idx]);
 	curandState st = states[idx];
 
 	F cx = x + (sx+.5) / cam->subpixel, cy = y + (sy+.5) / cam->subpixel;
@@ -60,7 +63,7 @@ __global__ void kernelCombResult(Vec *subpixel, Vec *pixel, Camera *cam, int sam
     pixel[idx] = res;
 }
 
-__host__ int ceil_div(int x, int y) {
+int ceil_div(int x, int y) {
 	return (x + y - 1) / y;
 }
 
@@ -81,18 +84,24 @@ int main(int argc, char *argv[]) {
 	cudaMalloc((void**)&pixel_result, scene.cam->n_pixel*sizeof(Vec));
 	initSubResult<<<dim3(scene.cam->n_sub), dim3(1)>>>(cam, sub_result);
 
+	{ // debug block
+		debug<<<dim3(1), dim3(1)>>>(group);
+		gpuErrchk( cudaDeviceSynchronize() );
+		printf("debug test pass\n");
+	}
+
 	dim3 blockDim(blocksize);
 	for (int samp = 0; samp <= scene.cam->samps; ++samp) {
 		fprintf(stderr, "\rrendering %6d of %d", samp, scene.cam->samps);
 		if (samp > 0) {
 			dim3 gridDim(ceil_div(scene.cam->n_sub, blocksize));
 			kernelRayTrace<<<gridDim, blockDim>>>(group, cam, sub_result, states);
-			cudaDeviceSynchronize(); // wait all
+			gpuErrchk( cudaDeviceSynchronize() ); // wait all
 		}
 
 		dim3 gridDim2(ceil_div(scene.cam->n_pixel, blocksize));
 		kernelCombResult<<<gridDim2, blockDim>>>(sub_result, pixel_result, cam, samp);
-		cudaDeviceSynchronize(); // wait all
+		gpuErrchk( cudaDeviceSynchronize() ); // wait all
 
 		Vec *img = new RGB[scene.cam->n_pixel]; 
 		cudaMemcpy(img, pixel_result, scene.cam->n_pixel*sizeof(Vec), cudaMemcpyDeviceToHost); // gpu to cpu

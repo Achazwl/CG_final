@@ -6,7 +6,7 @@
 struct RevSurface { // rotate around y aixs
 	RevSurface() = default;
     RevSurface(const Vec &offset, F scale, const std::vector<Vec> &points)
-    : offset(offset), scale(scale) { // TODO change to BSPline
+    : offset(offset), scale(scale) { // TODO change to BSPline ?
         n = points.size() - 1; // label from 0..n (size = n + 1)
         controls = new Vec[n+1];
         for (int i = 0; i <= n; ++i) controls[i] = points[i];
@@ -33,11 +33,8 @@ struct RevSurface { // rotate around y aixs
 	__device__ bool intersect(const Ray &ray, Hit &hit) const {
         if (!bound.intersect(ray)) return false;
         bool flag = false;
-        // TODO offset scale
-        // if (fabs(ray.d.y) > eps) { // TODO
-        if (true) {
-            int resolution = 16, iter = 10;
-            // int resolution = 8, iter = 4;
+        if (true) { // TODO fabs(ray.d.y) > eps
+            int resolution = 8, iter = 10; // TODO tune
             F dis = 1. / resolution;
             for (int ini = 1; ini < resolution; ++ini) {
                 F u = ini * dis;
@@ -90,7 +87,7 @@ struct RevSurface { // rotate around y aixs
         return res;
     }
 
-    __host__ RevSurface* to() const {
+    RevSurface* to() const {
         RevSurface* rev = new RevSurface(*this);
 		cudaMalloc((void**)&rev->controls, (n+1)*sizeof(Vec));
 		cudaMemcpy(rev->controls, controls, (n+1)*sizeof(Vec), cudaMemcpyHostToDevice);

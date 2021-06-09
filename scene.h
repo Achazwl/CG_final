@@ -7,22 +7,26 @@ struct Scene {
 	Group *group;
 
 	explicit Scene() {
+		CornellBox();
+	}
+
+private:
+	void CornellBox() {
 		initCamera();
 
 		initObject();
 		group = new Group(spheres, triangles, revsurfaces, materials);
 	}
 
-private:
 	void initCamera() {
-		int w = 1024, h = 768;
+		int w = 512, h = 384;
 		Vec o(50,52,295.6); // o
 		Vec _z= Vec(0,-0.042612,-1).normal(); // -z
 		Vec x(w*.5135/h); // x
 		Vec y = Vec::cross(_z, x).normal()*.5135;
 		int length = 140;
 		int subpixel = 2;
-		int spp = 20;
+		int spp = 600;
 
 		cam = new Camera(o, x, y, _z, length, w, h, subpixel, spp);
 	}
@@ -32,13 +36,17 @@ private:
 		// loadSphere(10.5, Vec(30,10.5,93), Material{Vec(),Vec(0.45, 0.45, 0.45), Vec(1,1,1)*0.03, Refl::GLASS}); // left ball
 		// loadSphere(10.5, Vec(70,10.5,93), Material{Vec(),Vec(0.15, 0.15, 0.15), Vec(1,1,1)*0.98, Refl::GLASS}); // right ball
 
-		MeshFile mesh("mesh/cube.obj");
-		loadMesh(Vec(1, 0, 0), Vec(-1, 81.6, 170), &mesh, Material{Vec(), Vec(.75, .25, .25), Vec(1,1,1)*0.02, Refl::GLASS}); // Left
-		loadMesh(Vec(99, 0, 0), Vec(1, 81.6, 170), &mesh, Material{Vec(),Vec(.25,.25,.75), Vec(1,1,1)*0.02, Refl::GLASS}); // Right
-		// loadMesh(Vec(1, 0, 170), Vec(98, 81.6, 1), &mesh, Material{Vec(), Vec(.9,.75,.75), Vec(1,1,1)*0.02, Refl::GLASS}); // Back
-		loadMesh(Vec(1, 0, 0), Vec(98, 81.6, -1), &mesh, Material{Vec(), Vec(.75,.75,.75), Vec(1,1,1)*0.02, Refl::GLASS}); // Front
-		loadMesh(Vec(1, 0, 0), Vec(98, -1, 170), &mesh, Material{Vec(),Vec(.75,.75,.75), Vec(1,1,1)*0.01, Refl::GLASS, "images/wood.jpg"}); // Bottom
-		loadMesh(Vec(1, 81.6, 0), Vec(98, 1, 170), &mesh, Material{Vec(), Vec(0, 0.9, 0), Vec(1,1,1)*0.02, Refl::GLASS}); // TOP
+		MeshFile* mesh;
+		mesh = new MeshFile("mesh/cube.obj");
+		loadMesh(Vec(1, 0, 0), Vec(-1, 81.6, 170), mesh, Material{Vec(), Vec(.75, .25, .25), Vec(1,1,1)*0.02, Refl::GLASS}); // Left
+		loadMesh(Vec(99, 0, 0), Vec(1, 81.6, 170), mesh, Material{Vec(),Vec(.25,.25,.75), Vec(1,1,1)*0.02, Refl::GLASS}); // Right
+		// loadMesh(Vec(1, 0, 170), Vec(98, 81.6, 1), mesh, Material{Vec(), Vec(.9,.75,.75), Vec(1,1,1)*0.02, Refl::GLASS}); // Back
+		loadMesh(Vec(1, 0, 0), Vec(98, 81.6, -1), mesh, Material{Vec(), Vec(.75,.75,.75), Vec(1,1,1)*0.02, Refl::GLASS}); // Front
+		loadMesh(Vec(1, 0, 0), Vec(98, -1, 170), mesh, Material{Vec(),Vec(.75,.75,.75), Vec(1,1,1)*0.01, Refl::GLASS, "images/wood.jpg"}); // Bottom
+		loadMesh(Vec(1, 81.6, 0), Vec(98, 1, 170), mesh, Material{Vec(), Vec(0, 0.9, 0), Vec(1,1,1)*0.02, Refl::GLASS}); // TOP
+
+		mesh = new MeshFile("mesh/tree.obj");
+		loadMesh(Vec(50, 20, 50), Vec(10, 10, 10), mesh, Material{Vec(), Vec(0, 0.9, 0), Vec(1,1,1)*0.02, Refl::GLASS}); // tree
 
 		// loadRevSurface(Vec(50, 0, 80), 1, std::vector<Vec>{
 		// 	Vec{10, 5},
