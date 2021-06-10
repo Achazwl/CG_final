@@ -19,14 +19,14 @@ private:
 	}
 
 	void initCamera() {
-		int w = 512, h = 384;
+		int w = 1024, h = 768;
 		Vec o(50,52,295.6); // o
 		Vec _z= Vec(0,-0.042612,-1).normal(); // -z
 		Vec x(w*.5135/h); // x
 		Vec y = Vec::cross(_z, x).normal()*.5135;
 		int length = 140;
 		int subpixel = 2;
-		int spp = 600;
+		int spp = 20;
 
 		cam = new Camera(o, x, y, _z, length, w, h, subpixel, spp);
 	}
@@ -48,13 +48,13 @@ private:
 		mesh = new MeshFile("mesh/tree.obj");
 		loadMesh(Vec(50, 20, 50), Vec(10, 10, 10), mesh, Material{Vec(), Vec(0, 0.9, 0), Vec(1,1,1)*0.02, Refl::GLASS}); // tree
 
-		// loadRevSurface(Vec(50, 0, 80), 1, std::vector<Vec>{
-		// 	Vec{10, 5},
-		// 	Vec{20, 10},
-		// 	Vec{30, 20},
-		// 	Vec{20, 50},
-		// 	Vec{10, 60},
-		// }, Material{Vec(), Vec(0.9, 0.1, 0.1), Vec(1,1,1)*0.02, Refl::GLASS});
+		loadRevSurface(Vec(50, 0, 50), 0.5, std::vector<Vec>{
+			Vec{10, 5},
+			Vec{20, 10},
+			Vec{30, 20},
+			Vec{20, 50},
+			Vec{10, 60},
+		}, Material{Vec(), Vec(0.9, 0.1, 0.1), Vec(1,1,1)*0.02, Refl::GLASS});
 	}
 
 private:

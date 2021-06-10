@@ -34,7 +34,7 @@ struct RevSurface { // rotate around y aixs
         if (!bound.intersect(ray)) return false;
         bool flag = false;
         if (true) { // TODO fabs(ray.d.y) > eps
-            int resolution = 8, iter = 10; // TODO tune
+            int resolution = 8, iter = 10; // TODO dy>0 ini up loop dy<0 ini down loop; break->return
             F dis = 1. / resolution;
             for (int ini = 1; ini < resolution; ++ini) {
                 F u = ini * dis;

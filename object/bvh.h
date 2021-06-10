@@ -12,16 +12,12 @@ struct Node {
 	Node* to() const {
 		Node* node = new Node(*this);
 		cudaMalloc((void**)&node->obj, sizeof(Triangle));
-		// cudaMalloc((void**)&node->lc, sizeof(Node));
-		// cudaMalloc((void**)&node->rc, sizeof(Node));
 		if (id >= 0) {
 			cudaMemcpy(node->obj, obj, sizeof(Triangle), cudaMemcpyHostToDevice);
 		}
 		else {
 			node->lc = lc->to();
 			node->rc = rc->to();
-			// cudaMemcpy(node->lc, lc->to(), sizeof(Node), cudaMemcpyHostToDevice);
-			// cudaMemcpy(node->rc, rc->to(), sizeof(Node), cudaMemcpyHostToDevice);
 		}
 
 		Node* device;
@@ -80,8 +76,6 @@ public:
 	BVH* to() const {
 		BVH* bvh = new BVH();
 		bvh->root = root->to();
-		// cudaMalloc((void**)&bvh->root, sizeof(Node));
-		// cudaMemcpy(bvh->root, root->to(), sizeof(Node), cudaMemcpyHostToDevice);
 
 		BVH* device;
 		cudaMalloc((void**)&device, sizeof(BVH));

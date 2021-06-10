@@ -63,8 +63,6 @@ public:
 		cudaMemcpy(group->tris, tris, num_tri*sizeof(Triangle), cudaMemcpyHostToDevice);
 
 		group->bvh = bvh->to();
-		// cudaMalloc((void**)&group->bvh, sizeof(BVH));
-		// cudaMemcpy(group->bvh, bvh->to(), sizeof(BVH), cudaMemcpyHostToDevice);
 
 		cudaMalloc((void**)&group->revs, num_rev*sizeof(RevSurface));
 		for (int i = 0; i < num_rev; ++i) {
