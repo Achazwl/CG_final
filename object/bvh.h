@@ -43,13 +43,19 @@ public:
 		std::vector<std::pair<Triangle*, int>> objs(num);
 		for (int i = 0; i < num; ++i) 
 			objs[i] = std::pair<Triangle*, int>{tris+i, i};
-		root = build(objs.begin(), objs.end(), 0, num);
+		if (num > 0) {
+			root = build(objs.begin(), objs.end(), 0, num);
+			root->bound.debug();
+		}
+		else
+			root = nullptr;
 	}
 
 	__device__ void debug() const {
 	}
 
 	__device__ int intersect(const Ray &ray, Hit &hit) const {
+		if (root == nullptr) return -1;
 		int id = -1;
 		Node* stack[32]; int top;
 		stack[top = 0] = root;
@@ -75,7 +81,8 @@ public:
 
 	BVH* to() const {
 		BVH* bvh = new BVH();
-		bvh->root = root->to();
+		if (root != nullptr)
+			bvh->root = root->to();
 
 		BVH* device;
 		cudaMalloc((void**)&device, sizeof(BVH));

@@ -21,6 +21,10 @@ t &= {2b \pm \sqrt{(2b)^2 - 4 * 1 * c}\over 2*1} \\
 \end{aligned}
 $$
 
+## Triangle
+
+$E_1 = v[1] - v[0], E_2 = v[2] - v[0], S = ray.o - v[0]$
+
 ## Acceleration
 
 ### Space partition (KD-tree)

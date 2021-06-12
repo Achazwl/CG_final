@@ -5,13 +5,28 @@
 
 struct Triangle { 
 	Triangle() = default;
-	Triangle(const Vec &a, const Vec &b, const Vec &c) : v{a,b,c} {
+	Triangle(
+        const Vec &a, const Vec &b, const Vec &c
+    ) : v{a,b,c} {
+        init();
+        // TODO this->vn = {n, n, n};
+        // TODO tex default 
+    }
+	Triangle(
+        const Vec &a, const Vec &b, const Vec &c,
+        const Vec &na, const Vec &nb, const Vec &nc,
+        const Tex &ta, const Tex &tb, const Tex &tc
+    ) : v{a,b,c}, vn{na, nb, nc}, vt{ta, tb, tc} {
+        init();
+    }
+	Triangle(const Triangle &rhs) = default;
+
+    void init() {
+        this->bound = Bound(v[0]) + Bound(v[1]) + Bound(v[2]);
         this->E1 = v[2] - v[0];
         this->E2 = v[1] - v[0];
         this->n = Vec::cross(E1, E2).normal(); // 0, 1, 2 counter clockwise is front face
-        this->bound = Bound(v[0]) + Bound(v[1]) + Bound(v[2]);
     }
-	Triangle(const Triangle &rhs) = default;
 
 	__device__ bool intersect(const Ray& ray, Hit& hit) const {
 	    auto S = ray.o - v[0];
@@ -25,14 +40,17 @@ struct Triangle {
         auto b = Vec::dot(ray.d, q) / div;
         if (b < 0 || b > 1) return false;
         if (a + b > 1) return false;
-        hit.set(t, div < 0 ? n : -n, p.x/2048, p.z/910); // TODO texture modify
+        // hit P = (1-a-b) * v[0] + a * v[1] + b * v[2];
+        // auto norm = (1-a-b) * vn[0] + a * vn[1] + b * vn[2]; // TODO normal interpolation
+        hit.set(t, div < 0 ? n: -n, (1-a-b) * vt[0] + a * vt[1] + b * vt[2]); // TODO texture modify barycentric coord
         return true;
 	}
 
-public: // TODO protected:
-    Vec n;
+public: // TODO protected
     Vec v[3];
-    Vec E1, E2;
+    Vec vn[3];
+    Tex vt[3];
+    Vec n, E1, E2;
     Bound bound;
 }; 
 

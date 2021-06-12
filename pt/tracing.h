@@ -23,7 +23,7 @@ inline __device__ Vec tracing(Group *group, Ray ray, curandState *st) {
 		bool into = Vec::dot(hit.n, ray.d) < 0;
 		Vec nl = into ? hit.n : -hit.n;
 		Material* m = hit.m;
-		RGB f = m->getColor(hit.u, hit.v); // TODO: texture 
+		RGB f = m->getColor(hit.tex); // TODO: texture 
 		F p = f.max();
 
 		eres = eres + fres * m->e;
@@ -33,33 +33,40 @@ inline __device__ Vec tracing(Group *group, Ray ray, curandState *st) {
 			else return eres;
 		}
 
-		if (m->refl == Refl::DIFFUSE) { // TODO fix
+		// if (m->refl == Refl::DIFFUSE) { // TODO fix
+		// 	F a, b, c; rndCosWeightedHSphere(a, b, c, st);
+		// 	Vec u, v, w = nl; Vec::orthoBase(w, u, v);
+		// 	Vec wo = -ray.d;
+		// 	Vec wi = (u * a + v * b + w * c).normal();
+		// 	Vec wh = (wi + wo).normal();
+		// 	F cosi = Vec::dot(wi, nl), coso = Vec::dot(wo, nl), cosh = Vec::dot(wh, nl);
+		// 	// Fresnel(wi, wh)
+		// 		Vec F0 = m->Ks;
+		// 		Vec Fr = F0 + (Vec(1,1,1) - F0) * pow5(1-Vec::dot(wi, wh));
+		// 	// D(wh)
+		// 		F ax = 0.8, ay = 0.7;
+		// 		F sinh = sqrt(1 - sqr(cosh));
+		// 		F e = (sqr(Vec::dot(wh, u) / ax) + sqr(Vec::dot(wh, v) / ay)) * sqr(sinh/cosh);
+		// 		F D = 1 / (M_PI * ax * ay * pow4(cosh) * sqr(1+e));
+		// 	// G(wo, wi)
+		// 		auto Lambda = [=](const Vec& w) {
+		// 			F cosw = Vec::dot(w, nl);
+		// 			F sinw = sqrt(1 - sqr(cosw));
+		// 			F tanw = sinw / cosw;
+		// 			F alpha = sqrt(sqr(Vec::dot(w, u) * ax) + sqr(Vec::dot(w, v) * ay));
+		// 			F a = 1 / (alpha * tanw);
+		// 			return a >= 1.6 ? 0 : (1 - 1.259 * a + 0.396 * a * a) / (3.535 * a + 2.181 * a * a);
+		// 		};
+		// 		F G = 1 / (1 + Lambda(wo) + Lambda(wi));
+		// 	auto fr = D * G * Fr / (4 * cosi * coso);
+		// 	fres = fres * fr * M_PI;
+		// 	ray = Ray(x, wi);
+		// }
+		if (m->refl == Refl::DIFFUSE) {
 			F a, b, c; rndCosWeightedHSphere(a, b, c, st);
 			Vec u, v, w = nl; Vec::orthoBase(w, u, v);
-			Vec wo = -ray.d;
 			Vec wi = (u * a + v * b + w * c).normal();
-			Vec wh = (wi + wo).normal();
-			F cosi = Vec::dot(wi, nl), coso = Vec::dot(wo, nl), cosh = Vec::dot(wh, nl);
-			// Fresnel(wi, wh)
-				Vec F0 = m->Ks;
-				Vec Fr = F0 + (Vec(1,1,1) - F0) * pow5(1-Vec::dot(wi, wh));
-			// D(wh)
-				F ax = 0.8, ay = 0.7;
-				F sinh = sqrt(1 - sqr(cosh));
-				F e = (sqr(Vec::dot(wh, u) / ax) + sqr(Vec::dot(wh, v) / ay)) * sqr(sinh/cosh);
-				F D = 1 / (M_PI * ax * ay * pow4(cosh) * sqr(1+e));
-			// G(wo, wi)
-				auto Lambda = [=](const Vec& w) {
-					F cosw = Vec::dot(w, nl);
-					F sinw = sqrt(1 - sqr(cosw));
-					F tanw = sinw / cosw;
-					F alpha = sqrt(sqr(Vec::dot(w, u) * ax) + sqr(Vec::dot(w, v) * ay));
-					F a = 1 / (alpha * tanw);
-					return a >= 1.6 ? 0 : (1 - 1.259 * a + 0.396 * a * a) / (3.535 * a + 2.181 * a * a);
-				};
-				F G = 1 / (1 + Lambda(wo) + Lambda(wi));
-			auto fr = D * G * Fr / (4 * cosi * coso);
-			fres = fres * fr * M_PI;
+			fres = fres * f;
 			ray = Ray(x, wi);
 		}
 		else if (m->refl == Refl::GLASS) {

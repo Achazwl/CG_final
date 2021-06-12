@@ -3,6 +3,7 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../images/stb_image.h"
+#include "../vecs/vector2f.h"
 
 enum class Refl { // reflect types
 	DIFFUSE,
@@ -22,9 +23,9 @@ public:
 	}
 	Material(const Material &rhs) = default;
 
-	__device__ Vec getColor(F u, F v) const { // TODO cudaTexture pool
+	__device__ Vec getColor(Tex tex) const { // TODO cudaTexture pool
 		if (img == nullptr) return Kd;
-		int pw = (int(u * w) % w + w) % w, ph = (int((1-v) * h) % h + h) % h;
+		int pw = (int(tex.y * w) % w + w) % w, ph = (int((1-tex.x) * h) % h + h) % h; // TODO which direction
 		int idx = (ph * w + pw) * c;
 		int x = img[idx + 0], y = img[idx + 1], z = img[idx + 2];
 		return Vec(x, y, z) / 255.0;
@@ -32,10 +33,15 @@ public:
 
 	Material* to() const {
 		Material* mat = new Material(*this);
-		if (img == nullptr) return mat;
-		cudaMalloc((void**)&mat->img, w*h*c*sizeof(u_char));
-		cudaMemcpy(mat->img, img, w*h*c*sizeof(u_char), cudaMemcpyHostToDevice);
-		return mat;
+		if (img != nullptr) {
+			cudaMalloc((void**)&mat->img, w*h*c*sizeof(u_char));
+			cudaMemcpy(mat->img, img, w*h*c*sizeof(u_char), cudaMemcpyHostToDevice);
+		}
+
+		Material *device;
+		cudaMalloc((void**)&device, sizeof(Material));
+		cudaMemcpy(device, mat, sizeof(Material), cudaMemcpyHostToDevice);
+		return device;
 	}
 
 public:

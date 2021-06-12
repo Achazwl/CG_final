@@ -29,6 +29,11 @@ struct Bound {
         return Bound(Vec::min(mn, rhs.mn), Vec::max(mx, rhs.mx));
     }
 
+    __device__ __host__ void debug() const {
+        mn.debug();
+        mx.debug();
+    }
+
     __device__ bool intersect(const Ray &ray) const {
         Vec enter = (mn - Vec(1,1,1) - ray.o) / ray.d; // pm (1,1,1) to make sure it is a cube
         Vec exit = (mx + Vec(1,1,1) - ray.o) / ray.d;
