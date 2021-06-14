@@ -50,11 +50,11 @@ private: // CornellBox
 		// loadMesh(Vec(50, 20, 50), Vec(10, 10, 10), mesh, Material{Vec(), Vec(0, 0.9, 0), Vec(1,1,1)*0.02, Refl::GLASS}); // tree
 
 		// loadRevSurface(Vec(50, 0, 50), 0.5, std::vector<Vec>{
-		// 	Vec{10, 5},
-		// 	Vec{20, 10},
-		// 	Vec{30, 20},
-		// 	Vec{20, 50},
-		// 	Vec{10, 60},
+		// 	Vec{10, 5, 0},
+		// 	Vec{20, 10, 0},
+		// 	Vec{30, 20, 0},
+		// 	Vec{20, 50, 0},
+		// 	Vec{10, 60, 0},
 		// }, Material{Vec(), Vec(0.9, 0.1, 0.1), Vec(1,1,1)*0.02, Refl::GLASS});
 	}
 
@@ -67,13 +67,15 @@ private: // Room
 
 	void RoomCamera() {
 		int w = 1024, h = 768;
-		Vec o(210,40,-5);
-		Vec _z= Vec(-1,0.04,0.15).normal();
+		// Vec o(210,40,-5);
+		// Vec _z= Vec(-1,0.04,0.15).normal();
+		Vec o(210,60,-5);
+		Vec _z= Vec(-1,-0.1,0.15).normal();
 		Vec x(0, 0, -w*.5135/h);
 		Vec y = Vec::cross(_z, x).normal()*.5135; // TODO why not 0.5 test
 		int length = 140;
 		int subpixel = 2;
-		int spp = 250;
+		int spp = 200;
 
 		cam = new Camera(o, x, y, _z, length, w, h, subpixel, spp);
 	}

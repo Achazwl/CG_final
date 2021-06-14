@@ -57,7 +57,8 @@ public:
                 material.specular[2]
             );
             this->materials.emplace_back(
-                Ke, Kd, Ks, Refl::DIFFUSE
+                Ke, Kd, Ks, material.roughness,
+                Refl::DIFFUSE
                 ,
                 material.diffuse_texname.empty() 
                     ? nullptr
@@ -99,6 +100,7 @@ public:
                 this->material_ids.emplace_back(
                     mat_id
                 );
+                // this->triangles.back().debug();
             }
 		}
     }

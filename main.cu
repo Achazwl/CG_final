@@ -75,6 +75,7 @@ int ceil_div(int x, int y) {
 int main(int argc, char *argv[]) { 
 	printf("initial begin\n");
 	Scene scene;
+	printf("load scene finished\n");
 	Camera *cam;
 	cudaMalloc((void**)&cam, sizeof(Camera));
 	cudaMemcpy(cam, scene.cam, sizeof(Camera), cudaMemcpyHostToDevice); // cpu -> gpu
