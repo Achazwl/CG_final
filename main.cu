@@ -27,9 +27,6 @@ __global__ void init(Camera *cam, Vec *result, curandState *states) {
 	if (idx >= cam->n_sub) return;
 	int pixel_idx = idx / cam->subpixel2;
 	int y = pixel_idx / cam->w;
-	// int x = pixel_idx % cam->w;
-	// int sy = (idx % cam->subpixel2) / cam->subpixel;
-	// int sx = (idx % cam->subpixel2) % cam->subpixel;
 
 	curand_init(y*y*y, idx, 0, &states[idx]);
 

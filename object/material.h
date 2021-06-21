@@ -22,82 +22,62 @@ public:
 		}
 		// load texture
 		u_char *raw = stbi_load(filename, &w, &h, &c, 0);
-		img = new F[w*h*c]; // TODO change class var to func var
-		for (int i = 0; i < w*h; ++i)
-		for (int j = 0; j < c; ++j)
-			img[j*w*h + i] = (F)raw[i*c + j] / 255.0;
+
+		for (int j = 0; j < c; ++j) {
+			auto img = new F[w*h];
+			for (int i = 0; i < w*h; ++i) {
+				img[i] = (F)raw[i*c + j] / 255.0;
+			}
+
+			// code below are loading texture to cuda texture pool
+			auto channelDesc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
+			cudaMallocArray(&cuArray, &channelDesc, w, h);
+			cudaMemcpy2DToArray(cuArray, 0, 0, img, w*sizeof(F), w*sizeof(F), h, cudaMemcpyHostToDevice);
+
+			delete[] img; // TODO delete this comment
+
+			cudaResourceDesc resDesc;
+			memset(&resDesc, 0, sizeof(resDesc));
+			resDesc.resType = cudaResourceTypeArray;
+			resDesc.res.array.array = cuArray;
+
+			cudaTextureDesc texDesc;
+			memset(&texDesc, 0, sizeof(cudaTextureDesc));
+			texDesc.addressMode[0] = cudaAddressModeWrap;
+			texDesc.addressMode[1] = cudaAddressModeWrap;
+			texDesc.filterMode = cudaFilterModeLinear;
+			texDesc.readMode = cudaReadModeElementType;
+			texDesc.normalizedCoords = 1;
+
+			cudaCreateTextureObject(&texObj[j], &resDesc, &texDesc, NULL);
+		}
 		stbi_image_free(raw);
-
-		// below are loading texture to cuda texture pool
-		auto extent = make_cudaExtent(w, h, c);
-
-		auto formatDesc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
-		cudaMalloc3DArray(&arr, &formatDesc, extent, cudaArrayLayered);
-
-		cudaMemcpy3DParms params;
-		memset(&params, 0, sizeof(params));
-		params.srcPos = params.dstPos = make_cudaPos(0, 0, 0);
-		params.srcPtr = make_cudaPitchedPtr(img, w * sizeof(F), w, h);
-		params.dstArray = arr;
-		params.extent = extent;
-		params.kind = cudaMemcpyHostToDevice;
-		cudaMemcpy3D(&params);
-
-		// delete[] img; // TODO delete this comment
-
-		cudaResourceDesc res_desc;
-		memset(&res_desc, 0, sizeof(cudaResourceDesc));
-		res_desc.resType = cudaResourceTypeArray;
-		res_desc.res.array.array = arr;
-		cudaTextureDesc tex_desc;
-		memset(&tex_desc, 0, sizeof(cudaTextureDesc));
-		tex_desc.filterMode = cudaFilterModeLinear;
-		tex_desc.addressMode[0] = cudaAddressModeWrap;
-		tex_desc.addressMode[1] = cudaAddressModeWrap;
-		tex_desc.addressMode[2] = cudaAddressModeWrap;
-		tex_desc.readMode = cudaReadModeElementType;
-		tex_desc.normalizedCoords = true;
-		cudaCreateTextureObject(&texture_obj, &res_desc, &tex_desc, NULL);
 	}
 	Material(const Material &rhs) = default;
 	~Material() { // TODO uncomment this
-		// cudaDestroyTextureObject(texture_obj);
-		// cudaFreeArray(arr);
+		// cudaDestroyTextureObject(texObj);
+		// cudaFreeArray(cuArray);
 	}
 
 	__device__ Vec getTexById(F u, F v) const {
-		auto ret = tex2D<float4>(texture_obj, u, v);
-		printf("%lf %lf %lf %lf\n", ret.x, ret.y, ret.z, ret.w);
 		return Vec(
-			ret.x,
-			ret.y,
-			ret.z
+			tex2D<F>(texObj[0], u, v),
+			tex2D<F>(texObj[1], u, v),
+			tex2D<F>(texObj[2], u, v)
 		);
-		// return Vec(img[idx], img[w*h+idx], img[w*h*2+idx]);
 	}
 
 	__device__ Vec getColor(Tex tex) const { // TODO cudaTexture pool
 		if (c == -1) return Kd;
 		return getTexById(tex.x, tex.y);
-		// F pw = tex.x * w, ph = tex.y * h;
-		// while (pw < eps) pw += w;
-		// while (pw > w-1-eps) pw -= w;
-		// if (pw < 1) pw += 1;
-		// while (ph < eps) ph += h;
-		// while (ph > h-1-eps) ph -= h;
-		// if (ph < 1) ph += 1;
-		// F a = pw - int(pw), b = ph - int(ph);
-		// return
-		// 	((1-a) * getTexById(int(ph  )*w+int(pw)) + a * getTexById(int(ph  )*w+int(pw+1))) * (1-b) +
-		// 	((1-a) * getTexById(int(ph+1)*w+int(pw)) + a * getTexById(int(ph+1)*w+int(pw+1))) * b;
 	}
 
 	Material* to() const {
 		Material* mat = new Material(*this);
-		if (c != -1) {
-			cudaMalloc((void**)&mat->img, w*h*c*sizeof(F));
-			cudaMemcpy(mat->img, img, w*h*c*sizeof(F), cudaMemcpyHostToDevice);
-		}
+		// if (c != -1) {
+		// 	cudaMalloc((void**)&mat->img, w*h*c*sizeof(F));
+		// 	cudaMemcpy(mat->img, img, w*h*c*sizeof(F), cudaMemcpyHostToDevice);
+		// }
 
 		Material *device;
 		cudaMalloc((void**)&device, sizeof(Material));
@@ -110,9 +90,8 @@ public:
 	F roughness;
 	Refl refl;
 	int w, h, c;
-	F *img; // TODO delete this
-	cudaArray_t arr;
-	cudaTextureObject_t texture_obj;
+	cudaArray_t cuArray;
+	cudaTextureObject_t texObj[3];
 };
 
 #endif // OBJ_MATERIAL
