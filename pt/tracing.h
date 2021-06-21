@@ -87,7 +87,7 @@ inline __device__ Vec tracing(Group *group, Ray ray, curandState *st) {
 		F O_H = Vec::dot(wo, wh), I_H = Vec::dot(wi, wh);
 		Vec fs = UE4_Specular(m->Ks, m->roughness, I_N, O_N, H_N, O_H, I_H);
 		Vec fd = Lambert_Diffuse(Kd);
-		Vec f = fd; // TODO fs + fd; // skew bug
+		Vec f = fd; // TODO fs+fd skew bug
 		fres = fres * f * M_PI;
 		ray = Ray(x, wi);
 	}

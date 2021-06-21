@@ -75,7 +75,7 @@ private: // Room
 		Vec y = Vec::cross(_z, x).normal()*.5135; // TODO why not 0.5 test
 		int length = 140;
 		int subpixel = 2;
-		int spp = 200;
+		int spp = 20;
 
 		cam = new Camera(o, x, y, _z, length, w, h, subpixel, spp);
 	}
