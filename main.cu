@@ -56,7 +56,6 @@ __global__ void kernelCombResult(Vec *subpixel, Vec *pixel, Camera *cam, int sam
 
 	Vec res = Vec();
 	F div = 1. / samp;
-	#pragma unroll
 	for (int i = 0; i < cam->subpixel2; i++) {
 		Vec sub = subpixel[idx * cam->subpixel2 + i] * div;
 		res = res + Vec(clamp(sub.x), clamp(sub.y), clamp(sub.z)) / cam->subpixel2;

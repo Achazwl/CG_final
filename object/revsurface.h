@@ -34,7 +34,7 @@ struct RevSurface { // rotate around y aixs
         if (!bound.intersect(ray)) return false;
         bool flag = false;
         if (true) { // TODO fabs(ray.d.y) > eps
-            int resolution = 8, iter = 10; // TODO dy>0 ini up loop dy<0 ini down loop; break->return
+            int resolution = 8, iter = 20; // TODO dy>0 ini up loop dy<0 ini down loop; break->return
             F dis = 1. / resolution;
             for (int ini = 1; ini < resolution; ++ini) {
                 F u = ini * dis;
@@ -53,7 +53,8 @@ struct RevSurface { // rotate around y aixs
                             F sint = (T * ray.d.z + O.z) / P.x;
                             Vec n = Vec::cross(dP, Vec(0, 0, 1)).normal();
                             Vec no = Vec(n.x * cost, n.y, n.x * sint); // TODO in or out check
-                            hit.set(T, no);
+                            Tex tex(0.2+atan2(sint, cost)*0.5*M_1_PI, u<0.3?u/2:0.15+(u-0.3)/0.7*0.85);
+                            hit.set(T, no, tex);
                             flag = true;
                         }
                         break;
