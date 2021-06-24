@@ -1,6 +1,7 @@
 #ifndef VECS_VECTOR3F
 #define VECS_VECTOR3F
 
+#include "../utils/rnd.h"
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
@@ -63,6 +64,10 @@ struct Vec {
 	__device__ __host__ static void orthoBase(Vec w, Vec &u, Vec &v) { // input w is normalized
 		u = (fabs(w.x)>.1?Vec(0,1,0):Vec(1,0,0)).cross(w).normal();
 		v = cross(w, u);
+	}
+
+	__device__ static Vec rand(F range, curandState *st) {
+		return Vec(rnd(range, st), rnd(range, st), rnd(range, st));
 	}
 
 	__device__ __host__ void debug(char end='\n') const {

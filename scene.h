@@ -11,6 +11,7 @@ struct Scene {
 		// Room();
 		Sponza();
 		// Bunny();
+		// TexBall();
 
 		group = new Group(spheres, triangles, revsurfaces, materials, material_ids);
 	}
@@ -106,7 +107,7 @@ private: // Sponza
 		Vec y = Vec::cross(_z, x).normal()*.5135; // TODO why not 0.5 test
 		int length = 40;
 		int subpixel = 2;
-		int spp = 1000;
+		int spp = 18000;
 
 		cam = new Camera(o, x, y, _z, length, w, h, subpixel, spp);
 	}
@@ -143,6 +144,32 @@ private: // Bunny
 		loadSphere(50, Vec(0, 400, 200), Material{Vec(1,1,1)*50,  Vec(), Vec(), 0, Refl::GLASS}); // sun
 		auto mesh = new MeshFile("bunny");
 		loadMesh(Vec(0, 0, 0), Vec(1, 1, 1)*10, mesh); // room
+	}
+
+private: // TexBall
+	void TexBall() {
+		TexBallCamera();
+
+		TexBallObject();
+	}
+
+	void TexBallCamera() {
+		int w = 1024, h = 768;
+		Vec o(-20,52,-295.6);
+		Vec _z= Vec(0,-0.042612,1).normal();
+		Vec x(-w*.5135/h, 0, 0);
+		Vec y = Vec::cross(_z, x).normal()*.5135;
+		int length = 140;
+		int subpixel = 2;
+		int spp = 1000;
+
+		cam = new Camera(o, x, y, _z, length, w, h, subpixel, spp);
+	}
+
+	void TexBallObject() {
+		loadSphere(100, Vec(0, 400, -200), Material{Vec(1,1,1)*50,  Vec(), Vec(), 0, Refl::GLASS}); // sun
+		auto mesh = new MeshFile("texball");
+		loadMesh(Vec(0, 0, 0), Vec(1, 1, 1)*50, mesh); // room
 	}
 
 private:

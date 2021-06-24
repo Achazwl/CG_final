@@ -47,7 +47,9 @@ __global__ void kernelRayTrace(Group *group, Camera *cam, Vec *result, curandSta
 	F cx = x + (sx+.5) / cam->subpixel, cy = y + (sy+.5) / cam->subpixel;
 	F dx = tent_filter(1/cam->subpixel, st), dy = tent_filter(1/cam->subpixel, st); // TODO: better filter (like bicubic)
 	Vec d = cam->x * ( (cx + dx) / cam->w - 0.5 ) + cam->y * ( (cy + dy) / cam->h - 0.5 ) + cam->_z; 
-	result[idx] = result[idx] + tracing(group, Ray(cam->o+d*cam->length, d.normal()), st);
+	Vec p = cam->o+d*cam->length;
+	Vec o = cam->o + Vec::rand(0.1, st);
+	result[idx] = result[idx] + tracing(group, Ray(p, (p-o).normal()), st);
 }
 
 __global__ void kernelCombResult(Vec *subpixel, Vec *pixel, Camera *cam, int samp) {
