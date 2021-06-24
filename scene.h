@@ -7,9 +7,9 @@ struct Scene {
 	Group *group;
 
 	explicit Scene() {
-		CornellBox();
+		// CornellBox();
 		// Room();
-		// Sponza();
+		Sponza();
 		// Bunny();
 
 		group = new Group(spheres, triangles, revsurfaces, materials, material_ids);
@@ -106,7 +106,7 @@ private: // Sponza
 		Vec y = Vec::cross(_z, x).normal()*.5135; // TODO why not 0.5 test
 		int length = 40;
 		int subpixel = 2;
-		int spp = 100; // 1h
+		int spp = 1000;
 
 		cam = new Camera(o, x, y, _z, length, w, h, subpixel, spp);
 	}
