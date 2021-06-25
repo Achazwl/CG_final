@@ -6,7 +6,7 @@
 struct RevSurface { // rotate around y aixs
 	RevSurface() = default;
     RevSurface(const Vec &offset, F scale, const std::vector<Vec> &points)
-    : offset(offset), scale(scale) { // TODO change to BSPline ?
+    : offset(offset), scale(scale) {
         n = points.size() - 1; // label from 0..n (size = n + 1)
         controls = new Vec[n+1];
         for (int i = 0; i <= n; ++i) controls[i] = points[i];
@@ -30,11 +30,11 @@ struct RevSurface { // rotate around y aixs
     }
 	RevSurface(const RevSurface& rhs) = default;
 
-	__device__ bool intersect(const Ray &ray, Hit &hit) const {
+	__device__ bool intersect(const Ray &ray, Hit &hit) const { // TODO bug
         if (!bound.intersect(ray)) return false;
         bool flag = false;
         if (true) { // TODO fabs(ray.d.y) > eps
-            int resolution = 8, iter = 20; // TODO dy>0 ini up loop dy<0 ini down loop; break->return
+            int resolution = 8, iter = 10;
             F dis = 1. / resolution;
             for (int ini = 1; ini < resolution; ++ini) {
                 F u = ini * dis;
@@ -97,7 +97,7 @@ struct RevSurface { // rotate around y aixs
         return rev;
     }
 
-public: // TODO protected:
+protected:
     Vec *controls, *deltas;
     Vec offset; F scale;
     int n;

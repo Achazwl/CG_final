@@ -35,7 +35,7 @@ struct Bucket {
 };
 
 class BVH { // based on SAH evaluation
-public: // TODO protected
+protected:
 	Node* root;
 public:
 	BVH() { }
@@ -51,22 +51,19 @@ public:
 			root = nullptr;
 	}
 
-	__device__ void debug() const {
-	}
-
 	__device__ int intersect(const Ray &ray, Hit &hit) const {
 		if (root == nullptr) return -1;
 		int id = -1;
 		Node* stack[32]; int top;
 		stack[top = 0] = root;
-        while (true) {
-            Node* node = stack[top];
-            if (!node->bound.intersect(ray)) {
+		while (true) {
+			Node* node = stack[top];
+			if (!node->bound.intersect(ray)) {
 				if (top-- == 0) break;
 				stack[top] = stack[top]->rc;
 				continue;
 			}
-            if (node->id >= 0) {
+			if (node->id >= 0) {
 				if (node->obj->intersect(ray, hit)) 
 					id = node->id;
 				if (top-- == 0) break;
@@ -75,7 +72,7 @@ public:
 			else {
 				stack[++top] = node->lc;
 			}
-        }
+		}
 		return id;
 	}
 
@@ -83,6 +80,8 @@ public:
 		BVH* bvh = new BVH();
 		if (root != nullptr)
 			bvh->root = root->to();
+		else
+			bvh->root = nullptr;
 
 		BVH* device;
 		cudaMalloc((void**)&device, sizeof(BVH));

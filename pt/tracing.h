@@ -68,7 +68,7 @@ inline __device__ Vec tracing(Group *group, Ray ray, curandState *st) {
 
 		eres = eres + fres * m->e;
 
-		if (++depth > 5) {  // || !p // TODO: bigger decay limit than 5?
+		if (++depth > 5) {  // || !p
 			if (rnd(1, st) < p) { // expeted = p * (f / p) + (1 - p) * 0 = f)
 				fres = fres / p;
 			}

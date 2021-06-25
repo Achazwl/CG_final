@@ -19,12 +19,13 @@ struct Sphere {
 		} else if ((tim = b + delta) > eps) {
 		} else return false;
 		if (hiteps < tim && tim < hit.t) {
-			hit.set(tim, (ray.At(tim) - c).normal()); // TODO texture modify
+			auto p = (ray.At(tim) - c).normal();
+			hit.set(tim, p, Tex(atan2(p.y, p.x)*0.5*M_1_PI, asin(p.z)*0.5*M_1_PI));
 			return true;
 		} else return false;
 	} 
 
-public: // TODO protected:
+protected:
 	F r;
 	Vec c;
 }; 

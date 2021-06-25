@@ -37,18 +37,15 @@ public:
 
 	__device__ bool intersect(const Ray &ray, Hit &hit) const {
 		int id = -1;
-        for (int i = 0; i < num_sph; ++i) {
-            if (sphs[i].intersect(ray, hit)) id = i;
+		for (int i = 0; i < num_sph; ++i) {
+			if (sphs[i].intersect(ray, hit)) id = i;
 		}
-        // for (int i = 0; i < num_tri; ++i) {
-        //     if (tris[i].intersect(ray, hit)) id = i + num_sph;
-		// }
 		{ // tri
 			int tid = bvh->intersect(ray, hit);
 			if (tid != -1) id = tid + num_sph;
 		}
-        for (int i = 0; i < num_rev; ++i) {
-            if (revs[i].intersect(ray, hit)) id = i + num_sph + num_tri;
+		for (int i = 0; i < num_rev; ++i) {
+			if (revs[i].intersect(ray, hit)) id = i + num_sph + num_tri;
 		}
 		if (id != -1) {
 			hit.setm(&mats[mat_ids[id]]);
@@ -87,7 +84,7 @@ public:
 		return device;
 	}
 
-public: // TODO protected
+protected:
 	int num_sph; Sphere *sphs;
 	int num_tri; Triangle *tris; BVH* bvh;
 	int num_rev; RevSurface *revs;

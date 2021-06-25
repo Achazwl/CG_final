@@ -85,7 +85,7 @@ struct Triangle {
         return true;
 	}
 
-public: // TODO protected
+public:
     Vec v[3];
     Vec vn[3];
     Tex vt[3];
