@@ -58,7 +58,8 @@ public:
 		stack[top = 0] = root;
 		while (true) {
 			Node* node = stack[top];
-			if (!node->bound.intersect(ray)) {
+			F unused;
+			if (!node->bound.intersect(ray, unused)) {
 				if (top-- == 0) break;
 				stack[top] = stack[top]->rc;
 				continue;

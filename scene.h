@@ -32,15 +32,15 @@ private: // CornellBox
 		int length = 140;
 		int focus = 200;
 		int subpixel = 2;
-		int spp = 100;
+		int spp = 2000; // 0.5h
 
 		cam = new Camera(o, x, y, _z, length, focus, w, h, subpixel, spp);
 	}
 
 	void CornellObject() {
 		loadSphere(600, Vec(50, 681.33, 81.6), Material{Vec(1,1,1)*3,  Vec(), Vec(), 0, Refl::GLASS}); // light
-		loadSphere(10.5, Vec(30,10.5,93), Material{Vec(),Vec(0.45, 0.45, 0.45), Vec(1,1,1)*0.03, 0, Refl::GLASS}); // left ball
-		loadSphere(10.5, Vec(70,10.5,73), Material{Vec(),Vec(0.15, 0.15, 0.15), Vec(1,1,1)*0.98, 0, Refl::GLASS}); // right ball
+		// loadSphere(10.5, Vec(30,10.5,93), Material{Vec(),Vec(0.45, 0.45, 0.45), Vec(1,1,1)*0.03, 0, Refl::GLASS}); // left ball
+		// loadSphere(10.5, Vec(70,10.5,73), Material{Vec(),Vec(0.15, 0.15, 0.15), Vec(1,1,1)*0.98, 0, Refl::GLASS}); // right ball
 
 		MeshFile* mesh;
 		mesh = new MeshFile("cube");
@@ -55,12 +55,13 @@ private: // CornellBox
 		mesh = new MeshFile("tree");
 		loadMesh(Vec(50, 20, 50), Vec(10, 10, 10), mesh); // tree
 
-		loadRevSurface(Vec(50, 0, 50), 0.5, std::vector<Vec>{
+		loadRevSurface(Vec(50, 0, 50), 0.1, std::vector<Vec>{
 			Vec{10, 5, 0},
 			Vec{20, 10, 0},
 			Vec{30, 20, 0},
 			Vec{20, 50, 0},
 			Vec{10, 60, 0},
+			Vec(20, 70, 0),
 		}, Material{Vec(), Vec(0.9, 0.1, 0.1), Vec(1,1,1)*0.02, 0, Refl::GLASS, "images/vase.png"});
 	}
 

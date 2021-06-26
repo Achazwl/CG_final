@@ -26,14 +26,57 @@ struct RevSurface { // rotate around y aixs
             );
             bound.mn = bound.mn * scale + offset;
             bound.mx = bound.mx * scale + offset;
+            bound.mn.debug();
+            bound.mx.debug();
         }
     }
 	RevSurface(const RevSurface& rhs) = default;
 
-	__device__ bool intersect(const Ray &ray, Hit &hit) const { // TODO bug
-        if (!bound.intersect(ray)) return false;
+	__device__ bool intersect2(const Ray &ray, Hit &hit) const {
+        F Tini;
+        if (!bound.intersect(ray, Tini)) return false;
+        Vec pt = ray.At(Tini) - offset;
+        F tini = atan2(-pt.z, pt.x) + M_PI;
+        F uini = (controls[n].y - pt.y/scale) / (controls[n].y - controls[0].y);
         bool flag = false;
-        if (true) { // TODO fabs(ray.d.y) > eps
+        for (int tri = 1; tri <= 1; ++tri) {
+            F T = Tini, t = tini, u = uini + tri * 0.2;
+            for (int loop = 0; loop < 20; ++loop) {
+                t = t - int(t/(2*M_PI))*2*M_PI;
+                if (t < 0) t += 2*M_PI;
+                u = clamp<F>(u, eps, 1-eps);
+                Vec P = deCasteljau(controls, n, u) * scale;
+                Vec dP = deCasteljau(deltas, n-1, u) * scale;
+                F cost = cos(t), sint = sin(t);
+                Vec pt(P.x * cost, P.y, P.x * sint);
+                Vec du(dP.x * cost, dP.y, dP.x * sint);
+                Vec dt(-P.x * sint, 0, P.x * cost);
+                Vec f = ray.At(T) - offset - pt;
+                F dis = f.norm2();
+                Vec no = Vec::cross(du, dt);
+                if (dis < eps) {
+                    if (hiteps < T && T < hit.t) {
+                        hit.set(T, no, Tex(t/(2*M_PI), u));
+                        flag = true;
+                    }
+                    break;
+                }
+                else {
+                    F div = 1. / Vec::dot(ray.d, no);
+                    T -= Vec::dot(du, Vec::cross(dt, f)) * div;
+                    u -= Vec::dot(ray.d, Vec::cross(dt, f)) * div;
+                    t += Vec::dot(ray.d, Vec::cross(du, f)) * div;
+                }
+            }
+        }
+        return flag;
+	} 
+    
+    __device__ bool intersect(const Ray &ray, Hit &hit) const {
+        F unused;
+        if (!bound.intersect(ray, unused)) return false;
+        bool flag = false;
+        if (true) {
             int resolution = 8, iter = 10;
             F dis = 1. / resolution;
             for (int ini = 1; ini < resolution; ++ini) {
@@ -52,7 +95,7 @@ struct RevSurface { // rotate around y aixs
                             F cost = (T * ray.d.x + O.x) / P.x;
                             F sint = (T * ray.d.z + O.z) / P.x;
                             Vec n = Vec::cross(dP, Vec(0, 0, 1)).normal();
-                            Vec no = Vec(n.x * cost, n.y, n.x * sint); // TODO in or out check
+                            Vec no = Vec(n.x * cost, n.y, n.x * sint);
                             Tex tex(0.2+atan2(sint, cost)*0.5*M_1_PI, u<0.3?u/2:0.15+(u-0.3)/0.7*0.85);
                             hit.set(T, no, tex);
                             flag = true;
@@ -66,9 +109,6 @@ struct RevSurface { // rotate around y aixs
                     if (u < eps || u > 1-eps) break;
                 }
             }
-        }
-        else {
-            // TODO
         }
         return flag;
 	} 
