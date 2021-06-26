@@ -66,6 +66,13 @@ struct Vec {
 		v = cross(w, u);
 	}
 
+	__host__ static Vec rand() {
+		static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+		static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+		static std::uniform_real_distribution<F> dis(0, 1);
+		return Vec(dis(gen), dis(gen), dis(gen));
+	}
+
 	__device__ static Vec rand(F range, curandState *st) {
 		return Vec(rnd(range, st), rnd(range, st), rnd(range, st));
 	}

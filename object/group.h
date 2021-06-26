@@ -44,9 +44,6 @@ public:
 			int tid = bvh->intersect(ray, hit);
 			if (tid != -1) id = tid + num_sph;
 		}
-		for (int i = 0; i < num_rev; ++i) {
-			if (revs[i].intersect(ray, hit)) id = i + num_sph + num_tri;
-		}
 		if (id != -1) {
 			hit.setm(&mats[mat_ids[id]]);
 			return true;

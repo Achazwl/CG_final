@@ -32,7 +32,7 @@ struct RevSurface { // rotate around y aixs
     }
 	RevSurface(const RevSurface& rhs) = default;
 
-	__device__ bool intersect2(const Ray &ray, Hit &hit) const {
+	__device__ bool intersect(const Ray &ray, Hit &hit) const {
         F Tini;
         if (!bound.intersect(ray, Tini)) return false;
         Vec pt = ray.At(Tini) - offset;
@@ -72,7 +72,7 @@ struct RevSurface { // rotate around y aixs
         return flag;
 	} 
     
-    __device__ bool intersect(const Ray &ray, Hit &hit) const {
+    __device__ bool intersect2(const Ray &ray, Hit &hit) const {
         F unused;
         if (!bound.intersect(ray, unused)) return false;
         bool flag = false;
@@ -96,7 +96,7 @@ struct RevSurface { // rotate around y aixs
                             F sint = (T * ray.d.z + O.z) / P.x;
                             Vec n = Vec::cross(dP, Vec(0, 0, 1)).normal();
                             Vec no = Vec(n.x * cost, n.y, n.x * sint);
-                            Tex tex(0.2+atan2(sint, cost)*0.5*M_1_PI, u<0.3?u/2:0.15+(u-0.3)/0.7*0.85);
+                            Tex tex(0.2+atan2(sint, cost)*0.5*M_1_PI, u);
                             hit.set(T, no, tex);
                             flag = true;
                         }
@@ -113,7 +113,7 @@ struct RevSurface { // rotate around y aixs
         return flag;
 	} 
 
-    __device__ Vec deCasteljau(const Vec *P_, int n, F u) const {
+    __device__ __host__ Vec deCasteljau(const Vec *P_, int n, F u) const {
         Vec *P = new Vec[n+1];
         for (int i = 0; i <= n; ++i) {
             P[i] = P_[i];
@@ -137,7 +137,7 @@ struct RevSurface { // rotate around y aixs
         return rev;
     }
 
-protected:
+public:
     Vec *controls, *deltas;
     Vec offset; F scale;
     int n;

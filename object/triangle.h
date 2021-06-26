@@ -78,7 +78,7 @@ struct Triangle {
         pu = pu.normal();
         pv = pv.normal();
 
-        // auto norm = ((1-a-b) * vn[0] + a * vn[1] + b * vn[2]).normal(); // TODO normal interpolation
+        // auto norm = ((1-a-b) * vn[0] + a * vn[1] + b * vn[2]).normal();
         auto norm = n;
         norm = div < 0 ? norm : -norm; 
         hit.set(t, norm, T, pu, pv);

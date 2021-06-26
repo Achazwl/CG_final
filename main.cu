@@ -45,10 +45,10 @@ __global__ void kernelRayTrace(Group *group, Camera *cam, Vec *result, curandSta
 	curandState* st = &states[idx];
 
 	F cx = x + (sx+.5) / cam->subpixel, cy = y + (sy+.5) / cam->subpixel;
-	F dx = tent_filter(1/cam->subpixel, st), dy = tent_filter(1/cam->subpixel, st); // TODO: better filter (like bicubic)
+	F dx = tent_filter(1/cam->subpixel, st), dy = tent_filter(1/cam->subpixel, st);
 	Vec d = cam->x * ( (cx + dx) / cam->w - 0.5 ) + cam->y * ( (cy + dy) / cam->h - 0.5 ) + cam->_z; 
 	Vec p = cam->o + d*cam->focus;
-	Vec o = cam->o; // + (rnd(10.0, st)-5) * cam->x + (rnd(10.0, st)-5) * cam->y; // TODO turn on
+	Vec o = cam->o; //+ (rnd(10.0, st)-5) * cam->x + (rnd(10.0, st)-5) * cam->y; // TODO turn on
 	result[idx] = result[idx] + tracing(group, Ray(o, (p-o).normal()), st);
 }
 

@@ -58,7 +58,7 @@ public:
             );
             this->materials.emplace_back(
                 Ke, Kd, Ks, material.roughness,
-                Refl::GLASS
+                Refl::DIFFUSE
                 ,
                 material.diffuse_texname.empty() 
                     ? nullptr
