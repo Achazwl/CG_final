@@ -9,9 +9,9 @@ struct Scene {
 	Group *group;
 
 	explicit Scene() {
-		CornellBox();
+		// CornellBox();
 		// Room();
-		// Sponza();
+		Sponza();
 		// Bunny();
 		// TexBall();
 		// Final();
@@ -144,7 +144,7 @@ private: // CornellBox
 		loadMesh(Vec(50, 40.8, -0.5), Vec(98, 81.6, 1), mesh); // Front
 		loadMesh(Vec(0.5, 40.8, 85), Vec(1, 81.6, 170), mesh); // Left
 		loadMesh(Vec(99.5, 40.8, 85), Vec(1, 81.6, 170), mesh); // Right
-;
+
 		mesh = new MeshFile("cube");
 		loadMesh(Vec(50, -0.5, 85), Vec(98, 1, 170), mesh, -1); // Bottom
 
@@ -222,14 +222,14 @@ private: // Sponza
 
 	void SponzaCamera() {
 		int w = 1024, h = 768;
-		Vec o(180, 5, -30);
-		Vec _z= Vec(-1, 0.2, 0.4).normal();
-		Vec x = Vec(0, 0, -(F)w/h)*.5135;
+		Vec o(150, 5, -20);
+		Vec _z= Vec(-1, 0.2, 0.55).normal();
+		Vec x = Vec(0, 0, -1)*(F)w/h*.5135;
 		Vec y = Vec::cross(_z, x).normal()*.5135;
 		int length = 40;
 		int focus = 40;
 		int subpixel = 2;
-		int spp = 20;
+		int spp = 20000;
 
 		cam = new Camera(o, x, y, _z, length, focus, w, h, subpixel, spp);
 	}
