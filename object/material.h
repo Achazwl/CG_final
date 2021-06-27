@@ -125,7 +125,7 @@ public:
 	__device__ Vec getColor(const Tex& tex, Vec& p, Vec& n, const Vec& pu, const Vec& pv) const {
 		if (cb != -1) {
 			// printf("%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n", tex.x, tex.y, p.x, p.y, p.z, pu.x, pu.y, pu.z, pv.x, pv.y, pv.z); // debug
-			Vec B = getBumpById(tex.x, tex.y);
+			Vec B = getBumpById(tex.x, 1-tex.y);
 			n = (B.z * n + B.x * pu + B.y * pv).normal();
 		}
 		return c == -1 ? Kd : getTexById(tex.x, 1-tex.y);

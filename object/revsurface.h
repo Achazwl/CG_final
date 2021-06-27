@@ -32,7 +32,7 @@ struct RevSurface { // rotate around y aixs
     }
 	RevSurface(const RevSurface& rhs) = default;
 
-	__device__ bool intersect(const Ray &ray, Hit &hit) const {
+	__device__ bool intersect2(const Ray &ray, Hit &hit) const {
         F Tini;
         if (!bound.intersect(ray, Tini)) return false;
         Vec pt = ray.At(Tini) - offset;
@@ -72,7 +72,7 @@ struct RevSurface { // rotate around y aixs
         return flag;
 	} 
     
-    __device__ bool intersect2(const Ray &ray, Hit &hit) const {
+    __device__ bool intersect(const Ray &ray, Hit &hit) const {
         F unused;
         if (!bound.intersect(ray, unused)) return false;
         bool flag = false;

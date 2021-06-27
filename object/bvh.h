@@ -102,7 +102,7 @@ private:
 			node->id = bg->second;
 			node->lc = node->rc = nullptr;
 		}
-        else {
+		else {
 			Bound centerBound;
 			for (ITER it = bg; it != ed; ++it) { 
 				centerBound = centerBound + it->first->bound.center();
@@ -112,7 +112,7 @@ private:
 			Bucket buckets[num_bucket]{};
 			for (ITER it = bg; it != ed; ++it) {
 				int b = num_bucket * centerBound.offset(it->first->bound.center())[dir];
-                b = clamp(b, 0, num_bucket-1);
+				b = clamp(b, 0, num_bucket-1);
 				buckets[b].count++;
 				buckets[b].bound = buckets[b].bound + it->first->bound;
 			}
@@ -151,7 +151,7 @@ private:
 					return b <= where;
 				});
 			}
-            node->obj = nullptr;
+			node->obj = nullptr;
 			node->id = -1; // change to -1-l if debug needed
 			node->lc = build(bg, sep, l, l+sep-bg);
 			node->rc = build(sep, ed, l+sep-bg, r);

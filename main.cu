@@ -48,7 +48,7 @@ __global__ void kernelRayTrace(Group *group, Camera *cam, Vec *result, curandSta
 	F dx = tent_filter(1/cam->subpixel, st), dy = tent_filter(1/cam->subpixel, st);
 	Vec d = cam->x * ( (cx + dx) / cam->w - 0.5 ) + cam->y * ( (cy + dy) / cam->h - 0.5 ) + cam->_z; 
 	Vec p = cam->o + d*cam->focus;
-	Vec o = cam->o; //+ (rnd(10.0, st)-5) * cam->x + (rnd(10.0, st)-5) * cam->y; // TODO turn on
+	Vec o = cam->o; //+ (rnd(10.0, st)-5) * cam->x + (rnd(10.0, st)-5) * cam->y; // turn on
 	result[idx] = result[idx] + tracing(group, Ray(o, (p-o).normal()), st);
 }
 
@@ -107,15 +107,17 @@ int main(int argc, char *argv[]) {
 		kernelCombResult<<<gridDim2, blockDim>>>(sub_result, pixel_result, cam, samp);
 		gpuErrchk( cudaDeviceSynchronize() ); // wait all
 
-		Vec *img = new RGB[scene.cam->n_pixel]; 
-		cudaMemcpy(img, pixel_result, scene.cam->n_pixel*sizeof(Vec), cudaMemcpyDeviceToHost); // gpu to cpu
-		FILE *f = fopen("image.ppm", "w");
-		fprintf(f, "P3\n%d %d\n%d\n", scene.cam->w, scene.cam->h, 255); 
-		for (int i = 0; i < scene.cam->n_pixel; i++) {
-			fprintf(f, "%d %d %d ", toInt(img[i].x), toInt(img[i].y), toInt(img[i].z));
+		if (samp % 100 == 0 || samp == scene.cam->samps-1) {
+			Vec *img = new RGB[scene.cam->n_pixel]; 
+			cudaMemcpy(img, pixel_result, scene.cam->n_pixel*sizeof(Vec), cudaMemcpyDeviceToHost); // gpu to cpu
+			FILE *f = fopen("image.ppm", "w");
+			fprintf(f, "P3\n%d %d\n%d\n", scene.cam->w, scene.cam->h, 255); 
+			for (int i = 0; i < scene.cam->n_pixel; i++) {
+				fprintf(f, "%d %d %d ", toInt(img[i].x), toInt(img[i].y), toInt(img[i].z));
+			}
+			fclose(f);
+			delete[] img;
 		}
-		fclose(f);
-		delete[] img;
 	}
 		
 	cudaFree(states);
