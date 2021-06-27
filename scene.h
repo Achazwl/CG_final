@@ -11,9 +11,9 @@ struct Scene {
 	explicit Scene() {
 		// CornellBox();
 		// Room();
-		Sponza();
+		// Sponza();
 		// Bunny();
-		// TexBall();
+		TexBall();
 		// Final();
 
 		group = new Group(spheres, triangles, revsurfaces, materials, material_ids);
@@ -196,12 +196,12 @@ private: // Room
 
 	void RoomCamera() {
 		int w = 1024, h = 768;
-		Vec o(210,60,-5);
-		Vec _z= Vec(-1,-0.1,0.15).normal();
-		Vec x(0, 0, -w*.5135/h);
+		Vec o(100,50,-5);
+		Vec _z= Vec(-1,-0.1,0.5).normal();
+		Vec x = Vec(0, 0, -1) * w*.5135/h;
 		Vec y = Vec::cross(_z, x).normal()*.5135;
-		int length = 140;
-		int focus = 160;
+		int length = 30;
+		int focus = 60;
 		int subpixel = 2;
 		int spp = 20;
 
@@ -285,29 +285,32 @@ private: // TexBall
 		int length = 40;
 		int focus = 320;
 		int subpixel = 2;
-		int spp = 20;
+		int spp = 200000;
 
 		cam = new Camera(o, x, y, _z, length, focus, w, h, subpixel, spp);
 	}
 
 	void TexBallObject() {
-		loadSphere(100, Vec(0, 400, -200), Material{Vec(1,1,1)*50,  Vec(), Vec(), 0, Refl::DIFFUSE}); // sun
-		loadSphere(10, Vec(-100, 10, 420), Material{Vec(),  Vec(0.85, 0.25, 0.25), Vec(), 0, Refl::DIFFUSE}); // ball
-		loadSphere(10, Vec(-90, 10,  390), Material{Vec(),  Vec(0.85, 0.25, 0.25), Vec(), 0, Refl::DIFFUSE}); // ball
-		loadSphere(10, Vec(-80, 10,  360), Material{Vec(),  Vec(0.85, 0.25, 0.25), Vec(), 0, Refl::DIFFUSE}); // ball
-		loadSphere(10, Vec(-70, 10,  330), Material{Vec(),  Vec(0.85, 0.25, 0.25), Vec(), 0, Refl::DIFFUSE}); // ball
-		loadSphere(10, Vec(-60, 10,  300), Material{Vec(),  Vec(0.85, 0.25, 0.25), Vec(), 0, Refl::DIFFUSE}); // ball
-		loadSphere(10, Vec(-50, 10,  270), Material{Vec(),  Vec(0.85, 0.25, 0.25), Vec(), 0, Refl::DIFFUSE}); // ball
-		loadSphere(10, Vec(-40, 10,  240), Material{Vec(),  Vec(0.85, 0.25, 0.25), Vec(), 0, Refl::DIFFUSE}); // ball
-		loadSphere(10, Vec(-30, 10,  210), Material{Vec(),  Vec(0.85, 0.25, 0.25), Vec(), 0, Refl::DIFFUSE}); // ball
-		loadSphere(10, Vec(-20, 10,  180), Material{Vec(),  Vec(0.85, 0.25, 0.25), Vec(), 0, Refl::DIFFUSE}); // ball
-		loadSphere(10, Vec(-10, 10,  150), Material{Vec(),  Vec(0.85, 0.25, 0.25), Vec(), 0, Refl::DIFFUSE}); // ball
-		loadSphere(10, Vec( 0 , 10,  120), Material{Vec(),  Vec(0.85, 0.25, 0.25), Vec(), 0, Refl::DIFFUSE}); // ball
-		loadSphere(10, Vec( 10, 10,  90 ), Material{Vec(),  Vec(0.85, 0.25, 0.25), Vec(), 0, Refl::DIFFUSE}); // ball
-		loadSphere(10, Vec( 20, 10,  60 ), Material{Vec(),  Vec(0.85, 0.25, 0.25), Vec(), 0, Refl::DIFFUSE}); // ball
-		loadSphere(10, Vec( 30, 10,  30 ), Material{Vec(),  Vec(0.85, 0.25, 0.25), Vec(), 0, Refl::DIFFUSE}); // ball
+		loadSphere(100, Vec(0, 400, -200), Material{Vec(1,1,1)*10,  Vec(), Vec(), 0, Refl::DIFFUSE}); // sun
+
 		auto mesh = new MeshFile("texball");
 		loadMesh(Vec(100, 0, 0), Vec(1, 1, 1)*50, mesh); // room
+
+		mesh = new MeshFile("cube");
+
+		loadMesh(Vec(-150, 60,  390), Vec(1,1,1)*40, mesh); // box
+		loadMesh(Vec(-135, 60,  360), Vec(1,1,1)*40, mesh); // box
+		loadMesh(Vec(-120, 60,  330), Vec(1,1,1)*40, mesh); // box
+		loadMesh(Vec(-105, 60,  300), Vec(1,1,1)*40, mesh); // box
+		loadMesh(Vec(-90 , 60,  270), Vec(1,1,1)*40, mesh); // box
+		loadMesh(Vec(-75 , 60,  240), Vec(1,1,1)*40, mesh); // box
+		loadMesh(Vec(-60 , 60,  210), Vec(1,1,1)*40, mesh); // box
+		loadMesh(Vec(-45 , 60,  180), Vec(1,1,1)*40, mesh); // box
+		loadMesh(Vec(-30 , 60,  150), Vec(1,1,1)*40, mesh); // box
+		loadMesh(Vec(-15 , 60,  120), Vec(1,1,1)*40, mesh); // box
+		loadMesh(Vec( 0  , 60,  90 ), Vec(1,1,1)*40, mesh); // box
+		loadMesh(Vec( 15 , 60,  60 ), Vec(1,1,1)*40, mesh); // box
+		loadMesh(Vec( 30 , 60,  30 ), Vec(1,1,1)*40, mesh); // box
 	}
 
 private:
