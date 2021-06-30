@@ -13,7 +13,6 @@ inline __device__ Vec tracing(Group *group, Ray ray, curandState *st) {
 	Vec fres = Vec(1,1,1);
 	int depth = 0;
 	//a + b(c+d()) = a+bc + bd() // recursive -> non-recursive
-	// return Vec(0.9, 0.2, 0.2);
 
 	while (true) {
 		Hit hit(1e20);
@@ -21,68 +20,57 @@ inline __device__ Vec tracing(Group *group, Ray ray, curandState *st) {
 
 		Vec x = ray.At(hit.t);
 		bool into = Vec::dot(hit.n, ray.d) < 0;
-		Vec nl = into ? hit.n : -hit.n;
 		Material* m = hit.m;
-		RGB f = m->getColor(hit.u, hit.v); // TODO: texture 
-		F p = f.max();
+		RGB Kd = m->getColor(hit.tex, x, hit.n, hit.pu, hit.pv);
+		Vec nl = into ? hit.n : -hit.n;
+		F p = Kd.max();
 
 		eres = eres + fres * m->e;
 
-		if (++depth > 5 || !p) { // TODO: bigger decay limit than 5?
-			if (rnd(1, st) < p) f = f / p; // expeted = p * (f / p) + (1 - p) * 0 = f
-			else return eres;
+		if (++depth > 5) {  // || !p
+			if (rnd(1, st) < p) { // expeted = p * (f / p) + (1 - p) * 0 = f)
+				fres = fres / p;
+			}
+			else {
+				return eres;
+			}
 		}
 
-		if (m->refl == Refl::DIFFUSE) { // TODO fix
-			F a, b, c; rndCosWeightedHSphere(a, b, c, st);
-			Vec u, v, w = nl; Vec::orthoBase(w, u, v);
-			Vec wo = -ray.d;
-			Vec wi = (u * a + v * b + w * c).normal();
-			Vec wh = (wi + wo).normal();
-			F cosi = Vec::dot(wi, nl), coso = Vec::dot(wo, nl), cosh = Vec::dot(wh, nl);
-			// Fresnel(wi, wh)
-				Vec F0 = m->Ks;
-				Vec Fr = F0 + (Vec(1,1,1) - F0) * pow5(1-Vec::dot(wi, wh));
-			// D(wh)
-				F ax = 0.8, ay = 0.7;
-				F sinh = sqrt(1 - sqr(cosh));
-				F e = (sqr(Vec::dot(wh, u) / ax) + sqr(Vec::dot(wh, v) / ay)) * sqr(sinh/cosh);
-				F D = 1 / (M_PI * ax * ay * pow4(cosh) * sqr(1+e));
-			// G(wo, wi)
-				auto Lambda = [=](const Vec& w) {
-					F cosw = Vec::dot(w, nl);
-					F sinw = sqrt(1 - sqr(cosw));
-					F tanw = sinw / cosw;
-					F alpha = sqrt(sqr(Vec::dot(w, u) * ax) + sqr(Vec::dot(w, v) * ay));
-					F a = 1 / (alpha * tanw);
-					return a >= 1.6 ? 0 : (1 - 1.259 * a + 0.396 * a * a) / (3.535 * a + 2.181 * a * a);
-				};
-				F G = 1 / (1 + Lambda(wo) + Lambda(wi));
-			auto fr = D * G * Fr / (4 * cosi * coso);
-			fres = fres * fr * M_PI;
+		F a, b, c; rndCosWeightedHSphere(a, b, c, st);
+		Vec u, v, w = nl; Vec::orthoBase(w, u, v);
+		Vec wo = -ray.d;
+		Vec wi = (u * a + v * b + w * c).normal();
+		fres = fres * Kd;
+		if (m->refl == Refl::DIFFUSE) {
 			ray = Ray(x, wi);
+		}
+		else if (m->refl == Refl::MIRROR) {
+			ray = Ray(x, ray.d - 2 * Vec::dot(ray.d, nl) * nl);   
 		}
 		else if (m->refl == Refl::GLASS) {
-			F a, b, c; rndCosWeightedHSphere(a, b, c, st);
-			Vec u, v, w = nl; Vec::orthoBase(w, u, v);
-			Vec wo = -ray.d;
-			Vec wi = (u * a + v * b + w * c).normal();
-			Vec wh = (wi + wo).normal();
-			F cosi = Vec::dot(wi, nl), coso = Vec::dot(wo, nl), cosh = Vec::dot(wh, nl);
+			F na = into ? 1 : 1.5, nb = into ? 1.5 : 1;
+			F cosi = -Vec::dot(ray.d, nl);
+			F nn = na / nb;
+			F sinr2 = sqr(nn) * (1 - sqr(cosi)); // sin(r)^2 = 1 - (na/nb sin(i))^2
+			if (sinr2 > 1) { // 超过临界角，全反射, 按照MIRROR的方式算
+				ray = Ray(x, ray.d - 2 * Vec::dot(ray.d, nl) * nl);   
+			}
+			F cosr = sqrt(1-sinr2);
+			Vec rd = nn*(ray.d + nl * cosi) + (-nl) * cosr;
 
-			Vec diffuse = (28. * M_1_PI / 23.) * f * (Vec(1,1,1) - m->Ks) * (1-pow5(1-0.5*cosi)) * (1-pow5(1-0.5*coso));
-			// Fresnel(wi, wh)
-				Vec F0 = m->Ks;
-				Vec Fr = F0 + (Vec(1,1,1) - F0) * pow5(1-Vec::dot(wi, wh));
-			// D(wh)
-				F ax = 0.1, ay = 0.1; // TODO
-				F sinh = sqrt(1 - sqr(cosh));
-				F e = (sqr(Vec::dot(wh, u) / ax) + sqr(Vec::dot(wh, v) / ay)) * sqr(sinh/cosh);
-				F D = 1 / (M_PI * ax * ay * pow4(cosh) * sqr(1+e));
-			Vec specular = D / ( 4 * Vec::dot(wi, wh) * max(cosi, coso) ) * Fr;
-			auto fr = diffuse + specular;
-			fres = fres * fr * M_PI;
-			ray = Ray(x, wi);
+			F F0 = sqr(nn-1)/sqr(nn+1);
+			F Re = F0 + (1-F0) * pow(1-cosi, 5), Tr = 1-Re; // 反射折射比
+
+			{ // Russian roulette 避免递归分支过多
+				F P = .25 + 0.5 * Re; // 直接按Re做P会出现极端情况，缩放一下，保证有上下界[0.25,0.75]
+				if (rnd(1, st) < P) {
+					ray = Ray(x, ray.d - 2 * Vec::dot(ray.d, nl) * nl);   
+					fres = fres * Re / P;
+				} else {
+					ray = Ray(x, rd);
+					fres = fres * Tr / (1-P);
+				}
+			}
 		}
 	}
 } 

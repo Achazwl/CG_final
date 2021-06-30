@@ -29,7 +29,12 @@ struct Bound {
         return Bound(Vec::min(mn, rhs.mn), Vec::max(mx, rhs.mx));
     }
 
-    __device__ bool intersect(const Ray &ray) const {
+    __device__ __host__ void debug() const {
+        mn.debug();
+        mx.debug();
+    }
+
+    __device__ bool intersect(const Ray &ray, F& t) const {
         Vec enter = (mn - Vec(1,1,1) - ray.o) / ray.d; // pm (1,1,1) to make sure it is a cube
         Vec exit = (mx + Vec(1,1,1) - ray.o) / ray.d;
         for (int i = 0; i < 3; ++i) {
@@ -38,7 +43,11 @@ struct Bound {
             }
         }
         F in = enter.max(), out = exit.min();
-        return in < out && out > eps; // maybe ray origin is inside the box, thus in < 0 but out >= 0
+        if (in < out && out > eps) { // maybe ray origin is inside the box, thus in < 0 but out >= 0
+            t = in > eps ? in : out;
+            return true;
+        }
+        return false;
     } 
 };
 

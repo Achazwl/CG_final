@@ -15,7 +15,8 @@ public:
 		const std::vector<Sphere> &spheres, 
 		const std::vector<Triangle> &triangles, 
 		const std::vector<RevSurface> &revsurfaces, 
-		const std::vector<Material> &materials)
+		const std::vector<Material> &materials,
+		const std::vector<int> &material_ids)
 	{
 		sphs = new Sphere[num_sph = spheres.size()];
 		for (int i = 0; i < num_sph; ++i) sphs[i] = spheres[i];
@@ -29,25 +30,22 @@ public:
 
 		mats = new Material[num_mat = materials.size()];
 		for (int i = 0; i < num_mat; ++i) mats[i] = materials[i];
+
+		this->mat_ids = new int[num_obj = material_ids.size()];
+		for (int i = 0; i < num_obj; ++i) mat_ids[i] = material_ids[i];
 	}
 
 	__device__ bool intersect(const Ray &ray, Hit &hit) const {
 		int id = -1;
-        for (int i = 0; i < num_sph; ++i) {
-            if (sphs[i].intersect(ray, hit)) id = i;
+		for (int i = 0; i < num_sph; ++i) {
+			if (sphs[i].intersect(ray, hit)) id = i;
 		}
-        // for (int i = 0; i < num_tri; ++i) {
-        //     if (tris[i].intersect(ray, hit)) id = i + num_sph;
-		// }
 		{ // tri
 			int tid = bvh->intersect(ray, hit);
 			if (tid != -1) id = tid + num_sph;
 		}
-        for (int i = 0; i < num_rev; ++i) {
-            if (revs[i].intersect(ray, hit)) id = i + num_sph + num_tri;
-		}
 		if (id != -1) {
-			hit.setm(&mats[id]);
+			hit.setm(&mats[mat_ids[id]]);
 			return true;
 		}
 		return false;
@@ -63,8 +61,6 @@ public:
 		cudaMemcpy(group->tris, tris, num_tri*sizeof(Triangle), cudaMemcpyHostToDevice);
 
 		group->bvh = bvh->to();
-		// cudaMalloc((void**)&group->bvh, sizeof(BVH));
-		// cudaMemcpy(group->bvh, bvh->to(), sizeof(BVH), cudaMemcpyHostToDevice);
 
 		cudaMalloc((void**)&group->revs, num_rev*sizeof(RevSurface));
 		for (int i = 0; i < num_rev; ++i) {
@@ -76,17 +72,21 @@ public:
 			cudaMemcpy(group->mats+i, mats[i].to(), sizeof(Material), cudaMemcpyHostToDevice);
 		}
 
+		cudaMalloc((void**)&group->mat_ids, num_obj*sizeof(int));
+		cudaMemcpy(group->mat_ids, mat_ids, num_obj*sizeof(int), cudaMemcpyHostToDevice);
+
 		Group *device;
 		cudaMalloc((void**)&device, sizeof(Group));
 		cudaMemcpy(device, group, sizeof(Group), cudaMemcpyHostToDevice);
 		return device;
 	}
 
-public: // TODO protected
+protected:
 	int num_sph; Sphere *sphs;
 	int num_tri; Triangle *tris; BVH* bvh;
 	int num_rev; RevSurface *revs;
 	int num_mat; Material *mats;
+	int num_obj; int *mat_ids;
 };
 
 #endif // OBJECT_GROUP

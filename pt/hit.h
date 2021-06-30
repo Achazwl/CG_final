@@ -4,20 +4,22 @@
 #include "../vecs/vector3f.h"
 #include "../object/material.h"
 
-constexpr F hiteps = 1e-3;
+constexpr F hiteps = 1e-4;
 
 struct Hit {
     F t;
     Material *m;
-    F u, v;
-    Vec n;
+    Tex tex;
+    Vec n, pu, pv;
 
     __device__ Hit(F t): t(t), n() {}
 
-    __device__ void set(F t, const Vec &n, F u=-1, F v=-1) {
+    __device__ void set(F t, const Vec &n, Tex tex = Tex(), Vec pu = Vec(), Vec pv = Vec()) {
         this->t = t;
         this->n = n;
-        this->u = u, this->v = v;
+        this->tex = tex;
+        this->pu =pu;
+        this->pv = pv;
     }
 
     __device__ void setm(Material *m) {

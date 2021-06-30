@@ -12,16 +12,12 @@ struct Node {
 	Node* to() const {
 		Node* node = new Node(*this);
 		cudaMalloc((void**)&node->obj, sizeof(Triangle));
-		// cudaMalloc((void**)&node->lc, sizeof(Node));
-		// cudaMalloc((void**)&node->rc, sizeof(Node));
 		if (id >= 0) {
 			cudaMemcpy(node->obj, obj, sizeof(Triangle), cudaMemcpyHostToDevice);
 		}
 		else {
 			node->lc = lc->to();
 			node->rc = rc->to();
-			// cudaMemcpy(node->lc, lc->to(), sizeof(Node), cudaMemcpyHostToDevice);
-			// cudaMemcpy(node->rc, rc->to(), sizeof(Node), cudaMemcpyHostToDevice);
 		}
 
 		Node* device;
@@ -39,7 +35,7 @@ struct Bucket {
 };
 
 class BVH { // based on SAH evaluation
-public: // TODO protected
+protected:
 	Node* root;
 public:
 	BVH() { }
@@ -47,24 +43,28 @@ public:
 		std::vector<std::pair<Triangle*, int>> objs(num);
 		for (int i = 0; i < num; ++i) 
 			objs[i] = std::pair<Triangle*, int>{tris+i, i};
-		root = build(objs.begin(), objs.end(), 0, num);
-	}
-
-	__device__ void debug() const {
+		if (num > 0) {
+			root = build(objs.begin(), objs.end(), 0, num);
+			root->bound.debug();
+		}
+		else
+			root = nullptr;
 	}
 
 	__device__ int intersect(const Ray &ray, Hit &hit) const {
+		if (root == nullptr) return -1;
 		int id = -1;
 		Node* stack[32]; int top;
 		stack[top = 0] = root;
-        while (true) {
-            Node* node = stack[top];
-            if (!node->bound.intersect(ray)) {
+		while (true) {
+			Node* node = stack[top];
+			F unused;
+			if (!node->bound.intersect(ray, unused)) {
 				if (top-- == 0) break;
 				stack[top] = stack[top]->rc;
 				continue;
 			}
-            if (node->id >= 0) {
+			if (node->id >= 0) {
 				if (node->obj->intersect(ray, hit)) 
 					id = node->id;
 				if (top-- == 0) break;
@@ -73,15 +73,16 @@ public:
 			else {
 				stack[++top] = node->lc;
 			}
-        }
+		}
 		return id;
 	}
 
 	BVH* to() const {
 		BVH* bvh = new BVH();
-		bvh->root = root->to();
-		// cudaMalloc((void**)&bvh->root, sizeof(Node));
-		// cudaMemcpy(bvh->root, root->to(), sizeof(Node), cudaMemcpyHostToDevice);
+		if (root != nullptr)
+			bvh->root = root->to();
+		else
+			bvh->root = nullptr;
 
 		BVH* device;
 		cudaMalloc((void**)&device, sizeof(BVH));
@@ -101,7 +102,7 @@ private:
 			node->id = bg->second;
 			node->lc = node->rc = nullptr;
 		}
-        else {
+		else {
 			Bound centerBound;
 			for (ITER it = bg; it != ed; ++it) { 
 				centerBound = centerBound + it->first->bound.center();
@@ -111,7 +112,7 @@ private:
 			Bucket buckets[num_bucket]{};
 			for (ITER it = bg; it != ed; ++it) {
 				int b = num_bucket * centerBound.offset(it->first->bound.center())[dir];
-                b = clamp(b, 0, num_bucket-1);
+				b = clamp(b, 0, num_bucket-1);
 				buckets[b].count++;
 				buckets[b].bound = buckets[b].bound + it->first->bound;
 			}
@@ -150,7 +151,7 @@ private:
 					return b <= where;
 				});
 			}
-            node->obj = nullptr;
+			node->obj = nullptr;
 			node->id = -1; // change to -1-l if debug needed
 			node->lc = build(bg, sep, l, l+sep-bg);
 			node->rc = build(sep, ed, l+sep-bg, r);

@@ -1,13 +1,15 @@
 #ifndef VECS_VECTOR3F
 #define VECS_VECTOR3F
 
+#include "../utils/rnd.h"
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
 
 struct Vec {
 	F x, y, z;
-	__device__ __host__ explicit Vec(F x=0, F y=0, F z=0) : x(x), y(y), z(z) {}
+	__device__ __host__ Vec(F v=0) : x(v), y(v), z(v) {}
+	__device__ __host__ Vec(F x, F y, F z) : x(x), y(y), z(z) {}
 	__device__ __host__ Vec(const Vec& rhs) : x(rhs.x), y(rhs.y), z(rhs.z) {}
 
 	__device__ __host__ F operator [] (int d) const { return d == 0 ? x : (d == 1 ? y : z); }
@@ -60,8 +62,19 @@ struct Vec {
 	}
 
 	__device__ __host__ static void orthoBase(Vec w, Vec &u, Vec &v) { // input w is normalized
-		u = (fabs(w.x)>.1?Vec(0,1):Vec(1)).cross(w).normal();
+		u = (fabs(w.x)>.1?Vec(0,1,0):Vec(1,0,0)).cross(w).normal();
 		v = cross(w, u);
+	}
+
+	__host__ static Vec rand() {
+		static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+		static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+		static std::uniform_real_distribution<F> dis(0, 1);
+		return Vec(dis(gen), dis(gen), dis(gen));
+	}
+
+	__device__ static Vec rand(F range, curandState *st) {
+		return Vec(rnd(range, st), rnd(range, st), rnd(range, st));
 	}
 
 	__device__ __host__ void debug(char end='\n') const {

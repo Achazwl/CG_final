@@ -9,7 +9,9 @@ if [ $server -eq 1 ]; then
 	fi
 else
 	nvcc -O3 main.cu -o main -std=c++14 -arch=compute_50 -code=sm_50 -Wno-deprecated-gpu-targets
-	nohup gwenview image.ppm >/dev/null 2>&1 &
-	echo compileend
-	time ./main
+	if [ $? -eq 0 ]; then
+		nohup gwenview image.ppm >/dev/null 2>&1 &
+		echo compileend
+		time ./main
+	fi
 fi
